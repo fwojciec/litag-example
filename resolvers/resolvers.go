@@ -114,7 +114,11 @@ func (r *mutationResolver) DeleteBook(ctx context.Context, id int64) (*sqlc.Book
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Agent(ctx context.Context, id int64) (*sqlc.Agent, error) {
-	panic("not implemented")
+	agent, err := r.Repo.GetAgent(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &agent, nil
 }
 
 func (r *queryResolver) Agents(ctx context.Context) ([]sqlc.Agent, error) {
@@ -122,14 +126,25 @@ func (r *queryResolver) Agents(ctx context.Context) ([]sqlc.Agent, error) {
 }
 
 func (r *queryResolver) Author(ctx context.Context, id int64) (*sqlc.Author, error) {
-	panic("not implemented")
+	author, err := r.Repo.GetAuthor(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &author, nil
 }
+
 func (r *queryResolver) Authors(ctx context.Context) ([]sqlc.Author, error) {
-	panic("not implemented")
+	return r.Repo.ListAuthors(ctx)
 }
+
 func (r *queryResolver) Book(ctx context.Context, id int64) (*sqlc.Book, error) {
-	panic("not implemented")
+	book, err := r.Repo.GetBook(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &book, nil
 }
+
 func (r *queryResolver) Books(ctx context.Context) ([]sqlc.Book, error) {
-	panic("not implemented")
+	return r.Repo.ListBooks(ctx)
 }
