@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/fwojciec/litag-example/generated/gqlgen" // update username to point to your repo
 	"github.com/fwojciec/litag-example/generated/sqlc"   // update username to point to your repo
@@ -87,20 +88,58 @@ func (r *mutationResolver) CreateAgent(ctx context.Context, data gqlgen.CreateUp
 }
 
 func (r *mutationResolver) UpdateAgent(ctx context.Context, id int64, data gqlgen.CreateUpdateAgentInput) (*sqlc.Agent, error) {
-	panic("not implemented")
+	agent, err := r.Repo.UpdateAgent(ctx, sqlc.UpdateAgentParams{
+		ID:    id,
+		Name:  data.Name,
+		Email: data.Email,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &agent, nil
 }
+
 func (r *mutationResolver) DeleteAgent(ctx context.Context, id int64) (*sqlc.Agent, error) {
-	panic("not implemented")
+	agent, err := r.Repo.DeleteAgent(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &agent, nil
 }
+
 func (r *mutationResolver) CreateAuthor(ctx context.Context, data gqlgen.CreateUpdateAuthorInput) (*sqlc.Author, error) {
-	panic("not implemented")
+	author, err := r.Repo.CreateAuthor(ctx, sqlc.CreateAuthorParams{
+		Name:    data.Name,
+		Website: stringPtrToNullString(data.Website),
+		AgentID: data.AgentID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &author, nil
 }
+
 func (r *mutationResolver) UpdateAuthor(ctx context.Context, id int64, data gqlgen.CreateUpdateAuthorInput) (*sqlc.Author, error) {
-	panic("not implemented")
+	author, err := r.Repo.UpdateAuthor(ctx, sqlc.UpdateAuthorParams{
+		ID:      id,
+		Name:    data.Name,
+		Website: stringPtrToNullString(data.Website),
+		AgentID: data.AgentID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &author, nil
 }
+
 func (r *mutationResolver) DeleteAuthor(ctx context.Context, id int64) (*sqlc.Author, error) {
-	panic("not implemented")
+	author, err := r.Repo.DeleteAuthor(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &author, nil
 }
+
 func (r *mutationResolver) CreateBook(ctx context.Context, data gqlgen.CreateUpdateBookInput) (*sqlc.Book, error) {
 	panic("not implemented")
 }
@@ -147,4 +186,11 @@ func (r *queryResolver) Book(ctx context.Context, id int64) (*sqlc.Book, error) 
 
 func (r *queryResolver) Books(ctx context.Context) ([]sqlc.Book, error) {
 	return r.Repo.ListBooks(ctx)
+}
+
+func stringPtrToNullString(s *string) sql.NullString {
+	if s != nil {
+		return sql.NullString{String: *s, Valid: true}
+	}
+	return sql.NullString{}
 }
