@@ -12,17 +12,28 @@ import (
 func TestQueries(t *testing.T) {
 
 	var (
-		testName1    = "test name 1"
-		testName2    = "test name 2"
-		testName3    = "test name 3"
-		testEmail1   = "test1@email.com"
-		testEmail2   = "test2@email.com"
-		testEmail3   = "test3@email.com"
-		testWebsite1 = "https://test.com"
-		agentID1     int64
-		agentID2     int64
-		authorID1    int64
-		authorID2    int64
+		testName1        = "test name 1"
+		testName2        = "test name 2"
+		testName3        = "test name 3"
+		testEmail1       = "test1@email.com"
+		testEmail2       = "test2@email.com"
+		testEmail3       = "test3@email.com"
+		testWebsite1     = "https://test.com"
+		testTitle1       = "book title 1"
+		testTitle2       = "book title 2"
+		testTitle3       = "book title 3"
+		testDescription1 = "description 1"
+		testDescription2 = "description 2"
+		testDescription3 = "description 3"
+		testCover1       = "cover1.jpg"
+		testCover2       = "cover2.jpg"
+		testCover3       = "cover3.jpg"
+		agentID1         int64
+		agentID2         int64
+		authorID1        int64
+		authorID2        int64
+		bookID1          int64
+		bookID2          int64
 	)
 
 	runner(t, func(ctx context.Context, q postgres.Q, t *testing.T) {
@@ -222,6 +233,155 @@ func TestQueries(t *testing.T) {
 			}
 			if g.AgentID != agentID2 {
 				t.Errorf("expected %d, received %d", agentID2, g.AgentID)
+			}
+		})
+
+		t.Run("CreateBook", func(t *testing.T) {
+			b1, err := q.CreateBook(ctx, sqlc.CreateBookParams{
+				Title:       testTitle1,
+				Description: testDescription1,
+				Cover:       testCover1,
+			})
+			if err != nil {
+				t.Fatalf("failed to create book: %s", err)
+			}
+			if b1.Title != testTitle1 {
+				t.Errorf("expected %q, received %q", testTitle1, b1.Title)
+			}
+			if b1.Description != testDescription1 {
+				t.Errorf("expected %q, received %q", testDescription1, b1.Description)
+			}
+			if b1.Cover != testCover1 {
+				t.Errorf("expected %q, received %q", testCover1, b1.Cover)
+			}
+			bookID1 = b1.ID
+			b2, err := q.CreateBook(ctx, sqlc.CreateBookParams{
+				Title:       testTitle2,
+				Description: testDescription2,
+				Cover:       testCover2,
+			})
+			if err != nil {
+				t.Fatalf("failed to create book: %s", err)
+			}
+			bookID2 = b2.ID
+		})
+
+		t.Run("SetAuthor", func(t *testing.T) {
+			err := q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
+				BookID:   bookID1,
+				AuthorID: authorID1,
+			})
+			if err != nil {
+				t.Fatalf("failed to set author book: %s", err)
+			}
+			err = q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
+				BookID:   bookID2,
+				AuthorID: authorID2,
+			})
+			if err != nil {
+				t.Fatalf("failed to set author book: %s", err)
+			}
+		})
+
+		t.Run("ListBooks", func(t *testing.T) {
+			l, err := q.ListBooks(ctx)
+			if err != nil {
+				t.Fatalf("failed to list books: %s", err)
+			}
+			if len(l) != 2 {
+				t.Errorf("expected length of 2, received %d", len(l))
+			}
+			if l[0].ID != bookID1 {
+				t.Errorf("expected %d, received %d", authorID1, l[0].ID)
+			}
+			if l[0].Title != testTitle1 {
+				t.Errorf("expected %q, received %q", testTitle1, l[0].Title)
+			}
+			if l[0].Description != testDescription1 {
+				t.Errorf("expected %q, received %q", testDescription1, l[0].Description)
+			}
+			if l[0].Cover != testCover1 {
+				t.Errorf("expected %q, received %q", testCover1, l[0].Cover)
+			}
+			if l[1].ID != bookID2 {
+				t.Errorf("expected %d, received %d", bookID2, l[1].ID)
+			}
+		})
+
+		t.Run("ListAuthorsByBookIDs", func(t *testing.T) {
+			l, err := q.ListAuthorsByBookID(ctx, bookID1)
+			if err != nil {
+				t.Fatalf("failed to list authors by book ids: %s", err)
+			}
+			if len(l) != 1 {
+				t.Errorf("expected length of 1, received %d", len(l))
+			}
+			if l[0].ID != authorID1 {
+				t.Errorf("expected %d, received %d", authorID1, l[0].ID)
+			}
+		})
+
+		t.Run("ListBooksByAuthorIDs", func(t *testing.T) {
+			l, err := q.ListBooksByAuthorID(ctx, authorID1)
+			if err != nil {
+				t.Fatalf("failed to list books by author ids: %s", err)
+			}
+			if len(l) != 1 {
+				t.Errorf("expected length of 1, received %d", len(l))
+			}
+			if l[0].ID != bookID1 {
+				t.Errorf("expected %d, received %d", bookID1, l[0].ID)
+			}
+		})
+
+		t.Run("UpdateBook", func(t *testing.T) {
+			b, err := q.UpdateBook(ctx, sqlc.UpdateBookParams{
+				ID:          bookID2,
+				Title:       testTitle3,
+				Description: testDescription3,
+				Cover:       testCover3,
+			})
+			if err != nil {
+				t.Fatalf("failed to update book: %s", err)
+			}
+			if b.Title != testTitle3 {
+				t.Errorf("expected %q, received %q", testTitle3, b.Title)
+			}
+			if b.Description != testDescription3 {
+				t.Errorf("expected %q, received %q", testDescription3, b.Description)
+			}
+			if b.Cover != testCover3 {
+				t.Errorf("expected %q, received %q", testCover3, b.Cover)
+			}
+		})
+
+		t.Run("GetBook", func(t *testing.T) {
+			b, err := q.GetBook(ctx, bookID2)
+			if err != nil {
+				t.Fatalf("failed to get book: %s", err)
+			}
+			if b.Title != testTitle3 {
+				t.Errorf("expected %q, received %q", testTitle3, b.Title)
+			}
+			if b.Description != testDescription3 {
+				t.Errorf("expected %q, received %q", testDescription3, b.Description)
+			}
+			if b.Cover != testCover3 {
+				t.Errorf("expected %q, received %q", testCover3, b.Cover)
+			}
+		})
+
+		t.Run("UnsetBookAuthors", func(t *testing.T) {
+			err := q.UnsetBookAuthors(ctx, bookID2)
+			if err != nil {
+				t.Fatalf("failed to unset book authors: %s", err)
+			}
+			l, err := q.ListAuthorsByBookID(ctx, bookID2)
+			if err != nil {
+				t.Fatalf("failed to list authors by book ids: %s", err)
+			}
+			if len(l) != 0 {
+				t.Errorf("expected length of 0, received %d", len(l))
 			}
 		})
 	})
