@@ -70,7 +70,7 @@ func (r *authorResolver) Books(ctx context.Context, obj *sqlc.Author) ([]sqlc.Bo
 type bookResolver struct{ *Resolver }
 
 func (r *bookResolver) Authors(ctx context.Context, obj *sqlc.Book) ([]sqlc.Author, error) {
-	panic("not implemented")
+	return r.Repo.ListAuthorsByBookID(ctx, obj.ID)
 }
 
 type mutationResolver struct{ *Resolver }

@@ -35,6 +35,7 @@ type Q interface {
 	ListAuthors(ctx context.Context) ([]sqlc.Author, error)
 	UpdateAuthor(ctx context.Context, args sqlc.UpdateAuthorParams) (sqlc.Author, error)
 	ListAuthorsByAgentID(ctx context.Context, agentID int64) ([]sqlc.Author, error)
+	ListAuthorsByBookID(ctx context.Context, bookID int64) ([]sqlc.Author, error)
 
 	// book queries
 	CreateBook(ctx context.Context, args sqlc.CreateBookParams) (sqlc.Book, error)
