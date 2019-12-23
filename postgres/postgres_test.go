@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	"github.com/fwojciec/litag-example/generated/sqlc"
@@ -11,14 +12,17 @@ import (
 func TestQueries(t *testing.T) {
 
 	var (
-		testName1  = "test name 1"
-		testName2  = "test name 2"
-		testName3  = "test name 3"
-		testEmail1 = "test1@email.com"
-		testEmail2 = "test2@email.com"
-		testEmail3 = "test3@email.com"
-		agentID1   int64
-		agentID2   int64
+		testName1    = "test name 1"
+		testName2    = "test name 2"
+		testName3    = "test name 3"
+		testEmail1   = "test1@email.com"
+		testEmail2   = "test2@email.com"
+		testEmail3   = "test3@email.com"
+		testWebsite1 = "https://test.com"
+		agentID1     int64
+		agentID2     int64
+		authorID1    int64
+		authorID2    int64
 	)
 
 	runner(t, func(ctx context.Context, q postgres.Q, t *testing.T) {
@@ -106,6 +110,118 @@ func TestQueries(t *testing.T) {
 			}
 			if g.Email != testEmail3 {
 				t.Errorf("expected %q, received %q", testEmail3, g.Email)
+			}
+		})
+
+		t.Run("CreateAuthor", func(t *testing.T) {
+			a1, err := q.CreateAuthor(ctx, sqlc.CreateAuthorParams{
+				Name:    testName1,
+				Website: sql.NullString{String: testWebsite1, Valid: true},
+				AgentID: agentID1,
+			})
+			if err != nil {
+				t.Fatalf("failed to create author: %s", err)
+			}
+			if a1.Name != testName1 {
+				t.Errorf("expected %q, received %q", testName1, a1.Name)
+			}
+			if !a1.Website.Valid {
+				t.Errorf("expected true, received %v", a1.Website.Valid)
+			}
+			if a1.Website.String != testWebsite1 {
+				t.Errorf("expected %q, received %q", testWebsite1, a1.Website.String)
+			}
+			if a1.AgentID != agentID1 {
+				t.Errorf("expected %d, received %d", agentID1, a1.AgentID)
+			}
+			authorID1 = a1.ID
+			a2, err := q.CreateAuthor(ctx, sqlc.CreateAuthorParams{
+				Name:    testName2,
+				Website: sql.NullString{},
+				AgentID: agentID2,
+			})
+			if err != nil {
+				t.Fatalf("failed to create author: %s", err)
+			}
+			authorID2 = a2.ID
+		})
+
+		t.Run("ListAuthors", func(t *testing.T) {
+			l, err := q.ListAuthors(ctx)
+			if err != nil {
+				t.Fatalf("failed to list authors: %s", err)
+			}
+			if len(l) != 2 {
+				t.Errorf("expected length of 2, received %d", len(l))
+			}
+			if l[0].ID != authorID1 {
+				t.Errorf("expected %d, received %d", authorID1, l[0].ID)
+			}
+			if l[0].Name != testName1 {
+				t.Errorf("expected %q, received %q", testName1, l[0].Name)
+			}
+			if l[0].Website.String != testWebsite1 {
+				t.Errorf("expected %q, received %q", testWebsite1, l[0].Website.String)
+			}
+			if l[1].ID != authorID2 {
+				t.Errorf("expected %d, received %d", authorID2, l[1].ID)
+			}
+		})
+
+		t.Run("ListAgentsByAuthorID", func(t *testing.T) {
+			l, err := q.ListAuthorsByAgentID(ctx, authorID1)
+			if err != nil {
+				t.Fatalf("failed to list agents by author id: %s", err)
+			}
+			if len(l) != 1 {
+				t.Errorf("expected length of 1, received %d", len(l))
+			}
+			if l[0].ID != agentID1 {
+				t.Errorf("expected %d, received %d", agentID1, l[0].ID)
+			}
+		})
+
+		t.Run("UpdateAuthor", func(t *testing.T) {
+			a, err := q.UpdateAuthor(ctx, sqlc.UpdateAuthorParams{
+				ID:      authorID1,
+				Name:    testName3,
+				Website: sql.NullString{},
+				AgentID: agentID2,
+			})
+			if err != nil {
+				t.Fatal("failed to update agent")
+			}
+			if a.ID != authorID1 {
+				t.Errorf("expected %d, received %d", authorID1, a.ID)
+			}
+			if a.Name != testName3 {
+				t.Errorf("expected %q, received %q", testName3, a.Name)
+			}
+			if a.Website.Valid {
+				t.Errorf("expected false, received %v", a.Website.Valid)
+			}
+			if a.AgentID != agentID2 {
+				t.Errorf("expected %d, received %d", agentID2, a.AgentID)
+			}
+		})
+
+		t.Run("GetAuthor", func(t *testing.T) {
+			g, err := q.GetAuthor(ctx, authorID1)
+			if err != nil {
+				t.Fatalf("failed to get author: %s", err)
+			}
+			// should have the data updated in UpdateAuthor above
+			if g.ID != authorID1 {
+				t.Errorf("expected %d, received %d", authorID1, g.ID)
+			}
+			if g.Name != testName3 {
+				t.Errorf("expected %q, received %q", testName3, g.Name)
+			}
+			if g.Website.Valid {
+				t.Errorf("expected false, received %v", g.Website.Valid)
+			}
+			if g.AgentID != agentID2 {
+				t.Errorf("expected %d, received %d", agentID2, g.AgentID)
 			}
 		})
 	})
