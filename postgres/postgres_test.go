@@ -378,10 +378,74 @@ func TestQueries(t *testing.T) {
 			}
 			l, err := q.ListAuthorsByBookID(ctx, bookID2)
 			if err != nil {
-				t.Fatalf("failed to list authors by book ids: %s", err)
+				t.Fatalf("failed to list authors by book id: %s", err)
 			}
 			if len(l) != 0 {
 				t.Errorf("expected length of 0, received %d", len(l))
+			}
+		})
+
+		t.Run("DeleteBook", func(t *testing.T) {
+			b, err := q.DeleteBook(ctx, bookID1)
+			if err != nil {
+				t.Fatalf("failed to delete book: %s", err)
+			}
+			if b.Title != testTitle1 {
+				t.Errorf("expected %q, received %q", testTitle1, b.Title)
+			}
+			if b.Description != testDescription1 {
+				t.Errorf("expected %q, received %q", testDescription1, b.Description)
+			}
+			if b.Cover != testCover1 {
+				t.Errorf("expected %q, received %q", testCover1, b.Cover)
+			}
+
+			l, err := q.ListAuthorsByBookID(ctx, bookID1)
+			if err != nil {
+				t.Fatalf("failed to list authors by book id: %s", err)
+			}
+			if len(l) != 0 {
+				t.Errorf("expected length of 0, received %d", len(l))
+			}
+		})
+
+		t.Run("DeleteAuthor", func(t *testing.T) {
+			d, err := q.DeleteAuthor(ctx, authorID1)
+			if err != nil {
+				t.Fatalf("failed to delete author: %s", err)
+			}
+			if d.Name != testName3 {
+				t.Errorf("expected %q, received %q", testName3, d.Name)
+			}
+			if d.Website.Valid {
+				t.Errorf("expected false, received %v", d.Website.Valid)
+			}
+			if d.AgentID != agentID2 {
+				t.Errorf("expected %d, received %d", agentID2, d.AgentID)
+			}
+		})
+
+		t.Run("DeleteAgent", func(t *testing.T) {
+			// author1 must be deleted first
+			d, err := q.DeleteAgent(ctx, agentID1)
+			if err != nil {
+				t.Fatalf("failed to delete agent: %s", err)
+			}
+			if d.ID != agentID1 {
+				t.Errorf("expected %d, received %d", agentID1, d.ID)
+			}
+			if d.Name != testName1 {
+				t.Errorf("expected %q, received %q", testName1, d.Name)
+			}
+			if d.Email != testEmail1 {
+				t.Errorf("expected %q, received %q", testEmail1, d.Email)
+			}
+			l, err := q.ListAgents(ctx)
+			if err != nil {
+				t.Fatalf("failed to list agents after delete: %s", err)
+			}
+			if len(l) != 1 {
+				t.Errorf("expected length of 1, received %d", len(l))
 			}
 		})
 	})
