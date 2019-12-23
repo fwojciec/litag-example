@@ -41,7 +41,7 @@ func (r *Resolver) Query() gqlgen.QueryResolver {
 type agentResolver struct{ *Resolver }
 
 func (r *agentResolver) Authors(ctx context.Context, obj *sqlc.Agent) ([]sqlc.Author, error) {
-	panic("not implemented")
+	return r.Repo.ListAuthorsByAgentID(ctx, obj.ID)
 }
 
 type authorResolver struct{ *Resolver }
