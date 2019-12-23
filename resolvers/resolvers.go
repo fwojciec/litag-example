@@ -65,8 +65,16 @@ func (r *bookResolver) Authors(ctx context.Context, obj *sqlc.Book) ([]sqlc.Auth
 type mutationResolver struct{ *Resolver }
 
 func (r *mutationResolver) CreateAgent(ctx context.Context, data gqlgen.CreateUpdateAgentInput) (*sqlc.Agent, error) {
-	panic("not implemented")
+	agent, err := r.Repo.CreateAgent(ctx, sqlc.CreateAgentParams{
+		Name:  data.Name,
+		Email: data.Email,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &agent, nil
 }
+
 func (r *mutationResolver) UpdateAgent(ctx context.Context, id int64, data gqlgen.CreateUpdateAgentInput) (*sqlc.Agent, error) {
 	panic("not implemented")
 }
@@ -97,9 +105,11 @@ type queryResolver struct{ *Resolver }
 func (r *queryResolver) Agent(ctx context.Context, id int64) (*sqlc.Agent, error) {
 	panic("not implemented")
 }
+
 func (r *queryResolver) Agents(ctx context.Context) ([]sqlc.Agent, error) {
-	panic("not implemented")
+	return r.Repo.ListAgents(ctx)
 }
+
 func (r *queryResolver) Author(ctx context.Context, id int64) (*sqlc.Author, error) {
 	panic("not implemented")
 }
