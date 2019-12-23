@@ -47,13 +47,24 @@ func (r *agentResolver) Authors(ctx context.Context, obj *sqlc.Agent) ([]sqlc.Au
 type authorResolver struct{ *Resolver }
 
 func (r *authorResolver) Website(ctx context.Context, obj *sqlc.Author) (*string, error) {
-	panic("not implemented")
+	var w string
+	if obj.Website.Valid {
+		w = obj.Website.String
+		return &w, nil
+	}
+	return nil, nil
 }
+
 func (r *authorResolver) Agent(ctx context.Context, obj *sqlc.Author) (*sqlc.Agent, error) {
-	panic("not implemented")
+	agent, err := r.Repo.GetAgent(ctx, obj.AgentID)
+	if err != nil {
+		return nil, err
+	}
+	return &agent, nil
 }
+
 func (r *authorResolver) Books(ctx context.Context, obj *sqlc.Author) ([]sqlc.Book, error) {
-	panic("not implemented")
+	return r.Repo.ListBooksByAuthorID(ctx, obj.ID)
 }
 
 type bookResolver struct{ *Resolver }

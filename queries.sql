@@ -81,3 +81,7 @@ WHERE book_id = $1;
 -- name: ListAuthorsByAgentID :many
 SELECT authors.* FROM authors, agents
 WHERE agents.id = authors.agent_id AND authors.agent_id = $1;
+
+-- name: ListBooksByAuthorID :many
+SELECT books.* FROM books, book_authors
+WHERE books.id = book_authors.book_id AND book_authors.author_id = $1;

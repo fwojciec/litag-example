@@ -44,6 +44,7 @@ type Q interface {
 	SetBookAuthor(ctx context.Context, args sqlc.SetBookAuthorParams) error
 	UnsetBookAuthors(ctx context.Context, bookID int64) error
 	UpdateBook(ctx context.Context, args sqlc.UpdateBookParams) (sqlc.Book, error)
+	ListBooksByAuthorID(ctx context.Context, authorID int64) ([]sqlc.Book, error)
 
 	// transaction support
 	WithTx(tx *sql.Tx) *sqlc.Queries
