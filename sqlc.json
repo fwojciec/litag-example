@@ -1,0 +1,10 @@
+{
+  "version": "1",
+  "packages": [
+    {
+      "path": "generated/sqlc",
+      "queries": "./queries.sql",
+      "schema": "./schema.sql"
+    }
+  ]
+}
