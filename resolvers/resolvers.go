@@ -1,5 +1,8 @@
 package resolvers
 
+//go:generate go run github.com/matryer/moq -out db_mock_test.go -pkg resolvers_test ../postgres DB
+//go:generate go run github.com/matryer/moq -out q_mock_test.go -pkg resolvers_test ../postgres Q
+
 import (
 	"context"
 	"database/sql"
@@ -141,84 +144,20 @@ func (r *mutationResolver) DeleteAuthor(ctx context.Context, id int64) (*sqlc.Au
 }
 
 func (r *mutationResolver) CreateBook(ctx context.Context, data gqlgen.CreateUpdateBookInput) (*sqlc.Book, error) {
-	// initialize the transaction
-	tx, err := r.Repo.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	// create new Queries for the transaction
-	q := r.Repo.WithTx(tx)
-
-	// create a book in the books table
-	book, err := q.CreateBook(ctx, sqlc.CreateBookParams{
+	return r.Repo.CreateBook(ctx, sqlc.CreateBookParams{
 		Title:       data.Title,
 		Description: data.Description,
 		Cover:       data.Cover,
-	})
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	// create an entry in the book_authors table for each author
-	for _, authorID := range data.AuthorIDs {
-		err := q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
-			BookID:   book.ID,
-			AuthorID: authorID,
-		})
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-	}
-
-	// commit and return
-	err = tx.Commit()
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	return &book, nil
+	}, data.AuthorIDs)
 }
 
 func (r *mutationResolver) UpdateBook(ctx context.Context, id int64, data gqlgen.CreateUpdateBookInput) (*sqlc.Book, error) {
-	tx, err := r.Repo.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-	q := r.Repo.WithTx(tx)
-	book, err := q.UpdateBook(ctx, sqlc.UpdateBookParams{
+	return r.Repo.UpdateBook(ctx, sqlc.UpdateBookParams{
 		ID:          id,
 		Title:       data.Title,
 		Description: data.Description,
 		Cover:       data.Cover,
-	})
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	err = q.UnsetBookAuthors(ctx, book.ID)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	for _, authorID := range data.AuthorIDs {
-		err := q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
-			BookID:   book.ID,
-			AuthorID: authorID,
-		})
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-	}
-	err = tx.Commit()
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	return &book, nil
+	}, data.AuthorIDs)
 }
 
 func (r *mutationResolver) DeleteBook(ctx context.Context, id int64) (*sqlc.Book, error) {

@@ -10,16 +10,19 @@ import (
 
 // Repo represents PostgreSQL-backed datalayer functionality.
 type Repo struct {
-	DB
 	Q
+	TxQ
 }
 
-// DB represents additional database functionality required by DataService.
-type DB interface {
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error)
+// NewRepo returns a pointer to a new instance of Repo.
+func NewRepo(db *sql.DB) *Repo {
+	return &Repo{
+		Q:   sqlc.New(db),
+		TxQ: &txqService{db},
+	}
 }
 
-// Q represents all available database queries.
+// Q represents database queries.
 type Q interface {
 	// agent queries
 	CreateAgent(ctx context.Context, args sqlc.CreateAgentParams) (sqlc.Agent, error)
@@ -38,25 +41,94 @@ type Q interface {
 	ListAuthorsByBookID(ctx context.Context, bookID int64) ([]sqlc.Author, error)
 
 	// book queries
-	CreateBook(ctx context.Context, args sqlc.CreateBookParams) (sqlc.Book, error)
 	DeleteBook(ctx context.Context, id int64) (sqlc.Book, error)
 	GetBook(ctx context.Context, id int64) (sqlc.Book, error)
 	ListBooks(ctx context.Context) ([]sqlc.Book, error)
-	SetBookAuthor(ctx context.Context, args sqlc.SetBookAuthorParams) error
-	UnsetBookAuthors(ctx context.Context, bookID int64) error
-	UpdateBook(ctx context.Context, args sqlc.UpdateBookParams) (sqlc.Book, error)
 	ListBooksByAuthorID(ctx context.Context, authorID int64) ([]sqlc.Book, error)
-
-	// transaction support
-	WithTx(tx *sql.Tx) *sqlc.Queries
 }
 
-// NewRepo returns a pointer to a new instance of Repo.
-func NewRepo(connectString string) (*Repo, error) {
-	db, err := sql.Open("postgres", connectString)
+// TxQ represents queries performed using a transaction.
+type TxQ interface {
+	CreateBook(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error)
+	UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookParams, authorIDs []int64) (*sqlc.Book, error)
+}
+
+type txqService struct {
+	db *sql.DB
+}
+
+func (txq *txqService) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error) {
+	tx, q, err := txq.init(ctx)
 	if err != nil {
 		return nil, err
 	}
-	q := sqlc.New(db)
-	return &Repo{DB: db, Q: q}, nil
+
+	// create a book in the books table
+	book, err := q.CreateBook(ctx, bookArgs)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// create an entry in the book_authors table for each author
+	for _, authorID := range authorIDs {
+		err := q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
+			BookID:   book.ID,
+			AuthorID: authorID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	// commit and return
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	return &book, nil
+}
+
+func (txq *txqService) UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookParams, authorIDs []int64) (*sqlc.Book, error) {
+	tx, q, err := txq.init(ctx)
+	if err != nil {
+		return nil, err
+	}
+	book, err := q.UpdateBook(ctx, bookArgs)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	err = q.UnsetBookAuthors(ctx, book.ID)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	for _, authorID := range authorIDs {
+		err := q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
+			BookID:   book.ID,
+			AuthorID: authorID,
+		})
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	return &book, nil
+}
+
+func (txq *txqService) init(ctx context.Context) (*sql.Tx, *sqlc.Queries, error) {
+	tx, err := txq.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	q := sqlc.New(tx)
+	return tx, q, nil
 }

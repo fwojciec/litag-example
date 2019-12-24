@@ -36,10 +36,10 @@ func TestQueries(t *testing.T) {
 		bookID2          int64
 	)
 
-	runner(t, func(ctx context.Context, q postgres.Q, t *testing.T) {
+	runner(t, func(ctx context.Context, r *postgres.Repo, t *testing.T) {
 		t.Run("CreateAgent", func(t *testing.T) {
 			// create agent 1
-			a1, err := q.CreateAgent(ctx, sqlc.CreateAgentParams{
+			a1, err := r.CreateAgent(ctx, sqlc.CreateAgentParams{
 				Name:  testName1,
 				Email: testEmail1,
 			})
@@ -55,7 +55,7 @@ func TestQueries(t *testing.T) {
 			agentID1 = a1.ID
 
 			// create agent 2
-			a2, err := q.CreateAgent(ctx, sqlc.CreateAgentParams{
+			a2, err := r.CreateAgent(ctx, sqlc.CreateAgentParams{
 				Name:  testName2,
 				Email: testEmail2,
 			})
@@ -66,7 +66,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("ListAgents", func(t *testing.T) {
-			l, err := q.ListAgents(ctx)
+			l, err := r.ListAgents(ctx)
 			if err != nil {
 				t.Fatalf("failed to list agents: %s", err)
 			}
@@ -88,7 +88,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("UpdateAgent", func(t *testing.T) {
-			a, err := q.UpdateAgent(ctx, sqlc.UpdateAgentParams{
+			a, err := r.UpdateAgent(ctx, sqlc.UpdateAgentParams{
 				ID:    agentID2,
 				Name:  testName3,
 				Email: testEmail3,
@@ -108,7 +108,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("GetAgent", func(t *testing.T) {
-			g, err := q.GetAgent(ctx, agentID2)
+			g, err := r.GetAgent(ctx, agentID2)
 			if err != nil {
 				t.Fatalf("failed to get agent: %s", err)
 			}
@@ -125,7 +125,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("CreateAuthor", func(t *testing.T) {
-			a1, err := q.CreateAuthor(ctx, sqlc.CreateAuthorParams{
+			a1, err := r.CreateAuthor(ctx, sqlc.CreateAuthorParams{
 				Name:    testName1,
 				Website: sql.NullString{String: testWebsite1, Valid: true},
 				AgentID: agentID1,
@@ -146,7 +146,7 @@ func TestQueries(t *testing.T) {
 				t.Errorf("expected %d, received %d", agentID1, a1.AgentID)
 			}
 			authorID1 = a1.ID
-			a2, err := q.CreateAuthor(ctx, sqlc.CreateAuthorParams{
+			a2, err := r.CreateAuthor(ctx, sqlc.CreateAuthorParams{
 				Name:    testName2,
 				Website: sql.NullString{},
 				AgentID: agentID2,
@@ -158,7 +158,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("ListAuthors", func(t *testing.T) {
-			l, err := q.ListAuthors(ctx)
+			l, err := r.ListAuthors(ctx)
 			if err != nil {
 				t.Fatalf("failed to list authors: %s", err)
 			}
@@ -180,7 +180,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("ListAgentsByAuthorID", func(t *testing.T) {
-			l, err := q.ListAuthorsByAgentID(ctx, authorID1)
+			l, err := r.ListAuthorsByAgentID(ctx, authorID1)
 			if err != nil {
 				t.Fatalf("failed to list agents by author id: %s", err)
 			}
@@ -193,7 +193,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("UpdateAuthor", func(t *testing.T) {
-			a, err := q.UpdateAuthor(ctx, sqlc.UpdateAuthorParams{
+			a, err := r.UpdateAuthor(ctx, sqlc.UpdateAuthorParams{
 				ID:      authorID1,
 				Name:    testName3,
 				Website: sql.NullString{},
@@ -217,7 +217,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("GetAuthor", func(t *testing.T) {
-			g, err := q.GetAuthor(ctx, authorID1)
+			g, err := r.GetAuthor(ctx, authorID1)
 			if err != nil {
 				t.Fatalf("failed to get author: %s", err)
 			}
@@ -237,11 +237,11 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("CreateBook", func(t *testing.T) {
-			b1, err := q.CreateBook(ctx, sqlc.CreateBookParams{
+			b1, err := r.CreateBook(ctx, sqlc.CreateBookParams{
 				Title:       testTitle1,
 				Description: testDescription1,
 				Cover:       testCover1,
-			})
+			}, []int64{authorID1})
 			if err != nil {
 				t.Fatalf("failed to create book: %s", err)
 			}
@@ -255,36 +255,19 @@ func TestQueries(t *testing.T) {
 				t.Errorf("expected %q, received %q", testCover1, b1.Cover)
 			}
 			bookID1 = b1.ID
-			b2, err := q.CreateBook(ctx, sqlc.CreateBookParams{
+			b2, err := r.CreateBook(ctx, sqlc.CreateBookParams{
 				Title:       testTitle2,
 				Description: testDescription2,
 				Cover:       testCover2,
-			})
+			}, []int64{authorID2})
 			if err != nil {
 				t.Fatalf("failed to create book: %s", err)
 			}
 			bookID2 = b2.ID
 		})
 
-		t.Run("SetAuthor", func(t *testing.T) {
-			err := q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
-				BookID:   bookID1,
-				AuthorID: authorID1,
-			})
-			if err != nil {
-				t.Fatalf("failed to set author book: %s", err)
-			}
-			err = q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
-				BookID:   bookID2,
-				AuthorID: authorID2,
-			})
-			if err != nil {
-				t.Fatalf("failed to set author book: %s", err)
-			}
-		})
-
 		t.Run("ListBooks", func(t *testing.T) {
-			l, err := q.ListBooks(ctx)
+			l, err := r.ListBooks(ctx)
 			if err != nil {
 				t.Fatalf("failed to list books: %s", err)
 			}
@@ -309,7 +292,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("ListAuthorsByBookIDs", func(t *testing.T) {
-			l, err := q.ListAuthorsByBookID(ctx, bookID1)
+			l, err := r.ListAuthorsByBookID(ctx, bookID1)
 			if err != nil {
 				t.Fatalf("failed to list authors by book ids: %s", err)
 			}
@@ -322,7 +305,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("ListBooksByAuthorIDs", func(t *testing.T) {
-			l, err := q.ListBooksByAuthorID(ctx, authorID1)
+			l, err := r.ListBooksByAuthorID(ctx, authorID1)
 			if err != nil {
 				t.Fatalf("failed to list books by author ids: %s", err)
 			}
@@ -335,12 +318,12 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("UpdateBook", func(t *testing.T) {
-			b, err := q.UpdateBook(ctx, sqlc.UpdateBookParams{
+			b, err := r.UpdateBook(ctx, sqlc.UpdateBookParams{
 				ID:          bookID2,
 				Title:       testTitle3,
 				Description: testDescription3,
 				Cover:       testCover3,
-			})
+			}, []int64{authorID1, authorID2})
 			if err != nil {
 				t.Fatalf("failed to update book: %s", err)
 			}
@@ -353,10 +336,18 @@ func TestQueries(t *testing.T) {
 			if b.Cover != testCover3 {
 				t.Errorf("expected %q, received %q", testCover3, b.Cover)
 			}
+
+			l, err := r.ListAuthorsByBookID(ctx, bookID2)
+			if err != nil {
+				t.Fatalf("failed to list authors by book id: %s", err)
+			}
+			if len(l) != 2 {
+				t.Errorf("expected length of 2, received %d", len(l))
+			}
 		})
 
 		t.Run("GetBook", func(t *testing.T) {
-			b, err := q.GetBook(ctx, bookID2)
+			b, err := r.GetBook(ctx, bookID2)
 			if err != nil {
 				t.Fatalf("failed to get book: %s", err)
 			}
@@ -371,22 +362,8 @@ func TestQueries(t *testing.T) {
 			}
 		})
 
-		t.Run("UnsetBookAuthors", func(t *testing.T) {
-			err := q.UnsetBookAuthors(ctx, bookID2)
-			if err != nil {
-				t.Fatalf("failed to unset book authors: %s", err)
-			}
-			l, err := q.ListAuthorsByBookID(ctx, bookID2)
-			if err != nil {
-				t.Fatalf("failed to list authors by book id: %s", err)
-			}
-			if len(l) != 0 {
-				t.Errorf("expected length of 0, received %d", len(l))
-			}
-		})
-
 		t.Run("DeleteBook", func(t *testing.T) {
-			b, err := q.DeleteBook(ctx, bookID1)
+			b, err := r.DeleteBook(ctx, bookID1)
 			if err != nil {
 				t.Fatalf("failed to delete book: %s", err)
 			}
@@ -400,7 +377,7 @@ func TestQueries(t *testing.T) {
 				t.Errorf("expected %q, received %q", testCover1, b.Cover)
 			}
 
-			l, err := q.ListAuthorsByBookID(ctx, bookID1)
+			l, err := r.ListAuthorsByBookID(ctx, bookID1)
 			if err != nil {
 				t.Fatalf("failed to list authors by book id: %s", err)
 			}
@@ -410,7 +387,7 @@ func TestQueries(t *testing.T) {
 		})
 
 		t.Run("DeleteAuthor", func(t *testing.T) {
-			d, err := q.DeleteAuthor(ctx, authorID1)
+			d, err := r.DeleteAuthor(ctx, authorID1)
 			if err != nil {
 				t.Fatalf("failed to delete author: %s", err)
 			}
@@ -427,7 +404,7 @@ func TestQueries(t *testing.T) {
 
 		t.Run("DeleteAgent", func(t *testing.T) {
 			// author1 must be deleted first
-			d, err := q.DeleteAgent(ctx, agentID1)
+			d, err := r.DeleteAgent(ctx, agentID1)
 			if err != nil {
 				t.Fatalf("failed to delete agent: %s", err)
 			}
@@ -440,7 +417,7 @@ func TestQueries(t *testing.T) {
 			if d.Email != testEmail1 {
 				t.Errorf("expected %q, received %q", testEmail1, d.Email)
 			}
-			l, err := q.ListAgents(ctx)
+			l, err := r.ListAgents(ctx)
 			if err != nil {
 				t.Fatalf("failed to list agents after delete: %s", err)
 			}
@@ -451,28 +428,30 @@ func TestQueries(t *testing.T) {
 	})
 }
 
-func runner(t *testing.T, test func(context.Context, postgres.Q, *testing.T)) {
+func runner(t *testing.T, test func(context.Context, *postgres.Repo, *testing.T)) {
 	ctx := context.Background()
 
-	repo, err := postgres.NewRepo("dbname=test_db sslmode=disable")
+	db, err := sql.Open("postgres", "dbname=test_db sslmode=disable")
 	if err != nil {
 		t.Fatalf("failed to connect to the db: %s\n", err)
 	}
 
+	repo := postgres.NewRepo(db)
+
 	// create and drop schema (defer)
 	defer func() {
-		if err := dropSchema(ctx, repo); err != nil {
+		if err := dropSchema(ctx, db); err != nil {
 			t.Fatalf("failed to drop queue schema: %s\n", err)
 		}
 	}()
-	if err := createSchema(ctx, repo); err != nil {
+	if err := createSchema(ctx, db); err != nil {
 		t.Fatalf("failed to create queue schema: %s\n", err)
 	}
 
 	test(ctx, repo, t)
 }
 
-func createSchema(ctx context.Context, db postgres.DB) error {
+func createSchema(ctx context.Context, db *sql.DB) error {
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -535,21 +514,11 @@ func createSchema(ctx context.Context, db postgres.DB) error {
 	return nil
 }
 
-func dropSchema(ctx context.Context, db postgres.DB) error {
-	tx, err := db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	_, err = tx.ExecContext(ctx, `
+func dropSchema(ctx context.Context, db *sql.DB) error {
+	_, err := db.ExecContext(ctx, `
 		DROP TABLE IF EXISTS book_authors, books, authors, agents;
 	`)
 	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	err = tx.Commit()
-	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	return nil

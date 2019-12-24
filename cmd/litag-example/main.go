@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,11 +13,15 @@ import (
 )
 
 func main() {
-	// initialize the repo
-	repo, err := postgres.NewRepo("dbname=litag_example_db sslmode=disable")
+	// initialize the db
+	db, err := sql.Open("postgres", "dbname=litag_example_db sslmode=disable")
 	if err != nil {
 		panic(err)
 	}
+	defer db.Close()
+
+	// initialize the repo
+	repo := postgres.NewRepo(db)
 
 	// initialize the GraphQL handler
 	gqlHandler := handler.GraphQL(gqlgen.NewExecutableSchema(gqlgen.Config{
