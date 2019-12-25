@@ -11,34 +11,34 @@ import (
 )
 
 var (
-	lockQMockCreateAgent          sync.RWMutex
-	lockQMockCreateAuthor         sync.RWMutex
-	lockQMockDeleteAgent          sync.RWMutex
-	lockQMockDeleteAuthor         sync.RWMutex
-	lockQMockDeleteBook           sync.RWMutex
-	lockQMockGetAgent             sync.RWMutex
-	lockQMockGetAuthor            sync.RWMutex
-	lockQMockGetBook              sync.RWMutex
-	lockQMockListAgents           sync.RWMutex
-	lockQMockListAuthors          sync.RWMutex
-	lockQMockListAuthorsByAgentID sync.RWMutex
-	lockQMockListAuthorsByBookID  sync.RWMutex
-	lockQMockListBooks            sync.RWMutex
-	lockQMockListBooksByAuthorID  sync.RWMutex
-	lockQMockUpdateAgent          sync.RWMutex
-	lockQMockUpdateAuthor         sync.RWMutex
+	lockQuerentMockCreateAgent          sync.RWMutex
+	lockQuerentMockCreateAuthor         sync.RWMutex
+	lockQuerentMockDeleteAgent          sync.RWMutex
+	lockQuerentMockDeleteAuthor         sync.RWMutex
+	lockQuerentMockDeleteBook           sync.RWMutex
+	lockQuerentMockGetAgent             sync.RWMutex
+	lockQuerentMockGetAuthor            sync.RWMutex
+	lockQuerentMockGetBook              sync.RWMutex
+	lockQuerentMockListAgents           sync.RWMutex
+	lockQuerentMockListAuthors          sync.RWMutex
+	lockQuerentMockListAuthorsByAgentID sync.RWMutex
+	lockQuerentMockListAuthorsByBookID  sync.RWMutex
+	lockQuerentMockListBooks            sync.RWMutex
+	lockQuerentMockListBooksByAuthorID  sync.RWMutex
+	lockQuerentMockUpdateAgent          sync.RWMutex
+	lockQuerentMockUpdateAuthor         sync.RWMutex
 )
 
-// Ensure, that QMock does implement postgres.Q.
+// Ensure, that QuerentMock does implement postgres.Querent.
 // If this is not the case, regenerate this file with moq.
-var _ postgres.Q = &QMock{}
+var _ postgres.Querent = &QuerentMock{}
 
-// QMock is a mock implementation of postgres.Q.
+// QuerentMock is a mock implementation of postgres.Querent.
 //
-//     func TestSomethingThatUsesQ(t *testing.T) {
+//     func TestSomethingThatUsesQuerent(t *testing.T) {
 //
-//         // make and configure a mocked postgres.Q
-//         mockedQ := &QMock{
+//         // make and configure a mocked postgres.Querent
+//         mockedQuerent := &QuerentMock{
 //             CreateAgentFunc: func(ctx context.Context, args sqlc.CreateAgentParams) (sqlc.Agent, error) {
 // 	               panic("mock out the CreateAgent method")
 //             },
@@ -89,11 +89,11 @@ var _ postgres.Q = &QMock{}
 //             },
 //         }
 //
-//         // use mockedQ in code that requires postgres.Q
+//         // use mockedQuerent in code that requires postgres.Querent
 //         // and then make assertions.
 //
 //     }
-type QMock struct {
+type QuerentMock struct {
 	// CreateAgentFunc mocks the CreateAgent method.
 	CreateAgentFunc func(ctx context.Context, args sqlc.CreateAgentParams) (sqlc.Agent, error)
 
@@ -254,9 +254,9 @@ type QMock struct {
 }
 
 // CreateAgent calls CreateAgentFunc.
-func (mock *QMock) CreateAgent(ctx context.Context, args sqlc.CreateAgentParams) (sqlc.Agent, error) {
+func (mock *QuerentMock) CreateAgent(ctx context.Context, args sqlc.CreateAgentParams) (sqlc.Agent, error) {
 	if mock.CreateAgentFunc == nil {
-		panic("QMock.CreateAgentFunc: method is nil but Q.CreateAgent was just called")
+		panic("QuerentMock.CreateAgentFunc: method is nil but Querent.CreateAgent was just called")
 	}
 	callInfo := struct {
 		Ctx  context.Context
@@ -265,16 +265,16 @@ func (mock *QMock) CreateAgent(ctx context.Context, args sqlc.CreateAgentParams)
 		Ctx:  ctx,
 		Args: args,
 	}
-	lockQMockCreateAgent.Lock()
+	lockQuerentMockCreateAgent.Lock()
 	mock.calls.CreateAgent = append(mock.calls.CreateAgent, callInfo)
-	lockQMockCreateAgent.Unlock()
+	lockQuerentMockCreateAgent.Unlock()
 	return mock.CreateAgentFunc(ctx, args)
 }
 
 // CreateAgentCalls gets all the calls that were made to CreateAgent.
 // Check the length with:
-//     len(mockedQ.CreateAgentCalls())
-func (mock *QMock) CreateAgentCalls() []struct {
+//     len(mockedQuerent.CreateAgentCalls())
+func (mock *QuerentMock) CreateAgentCalls() []struct {
 	Ctx  context.Context
 	Args sqlc.CreateAgentParams
 } {
@@ -282,16 +282,16 @@ func (mock *QMock) CreateAgentCalls() []struct {
 		Ctx  context.Context
 		Args sqlc.CreateAgentParams
 	}
-	lockQMockCreateAgent.RLock()
+	lockQuerentMockCreateAgent.RLock()
 	calls = mock.calls.CreateAgent
-	lockQMockCreateAgent.RUnlock()
+	lockQuerentMockCreateAgent.RUnlock()
 	return calls
 }
 
 // CreateAuthor calls CreateAuthorFunc.
-func (mock *QMock) CreateAuthor(ctx context.Context, args sqlc.CreateAuthorParams) (sqlc.Author, error) {
+func (mock *QuerentMock) CreateAuthor(ctx context.Context, args sqlc.CreateAuthorParams) (sqlc.Author, error) {
 	if mock.CreateAuthorFunc == nil {
-		panic("QMock.CreateAuthorFunc: method is nil but Q.CreateAuthor was just called")
+		panic("QuerentMock.CreateAuthorFunc: method is nil but Querent.CreateAuthor was just called")
 	}
 	callInfo := struct {
 		Ctx  context.Context
@@ -300,16 +300,16 @@ func (mock *QMock) CreateAuthor(ctx context.Context, args sqlc.CreateAuthorParam
 		Ctx:  ctx,
 		Args: args,
 	}
-	lockQMockCreateAuthor.Lock()
+	lockQuerentMockCreateAuthor.Lock()
 	mock.calls.CreateAuthor = append(mock.calls.CreateAuthor, callInfo)
-	lockQMockCreateAuthor.Unlock()
+	lockQuerentMockCreateAuthor.Unlock()
 	return mock.CreateAuthorFunc(ctx, args)
 }
 
 // CreateAuthorCalls gets all the calls that were made to CreateAuthor.
 // Check the length with:
-//     len(mockedQ.CreateAuthorCalls())
-func (mock *QMock) CreateAuthorCalls() []struct {
+//     len(mockedQuerent.CreateAuthorCalls())
+func (mock *QuerentMock) CreateAuthorCalls() []struct {
 	Ctx  context.Context
 	Args sqlc.CreateAuthorParams
 } {
@@ -317,16 +317,16 @@ func (mock *QMock) CreateAuthorCalls() []struct {
 		Ctx  context.Context
 		Args sqlc.CreateAuthorParams
 	}
-	lockQMockCreateAuthor.RLock()
+	lockQuerentMockCreateAuthor.RLock()
 	calls = mock.calls.CreateAuthor
-	lockQMockCreateAuthor.RUnlock()
+	lockQuerentMockCreateAuthor.RUnlock()
 	return calls
 }
 
 // DeleteAgent calls DeleteAgentFunc.
-func (mock *QMock) DeleteAgent(ctx context.Context, id int64) (sqlc.Agent, error) {
+func (mock *QuerentMock) DeleteAgent(ctx context.Context, id int64) (sqlc.Agent, error) {
 	if mock.DeleteAgentFunc == nil {
-		panic("QMock.DeleteAgentFunc: method is nil but Q.DeleteAgent was just called")
+		panic("QuerentMock.DeleteAgentFunc: method is nil but Querent.DeleteAgent was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -335,16 +335,16 @@ func (mock *QMock) DeleteAgent(ctx context.Context, id int64) (sqlc.Agent, error
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockQMockDeleteAgent.Lock()
+	lockQuerentMockDeleteAgent.Lock()
 	mock.calls.DeleteAgent = append(mock.calls.DeleteAgent, callInfo)
-	lockQMockDeleteAgent.Unlock()
+	lockQuerentMockDeleteAgent.Unlock()
 	return mock.DeleteAgentFunc(ctx, id)
 }
 
 // DeleteAgentCalls gets all the calls that were made to DeleteAgent.
 // Check the length with:
-//     len(mockedQ.DeleteAgentCalls())
-func (mock *QMock) DeleteAgentCalls() []struct {
+//     len(mockedQuerent.DeleteAgentCalls())
+func (mock *QuerentMock) DeleteAgentCalls() []struct {
 	Ctx context.Context
 	ID  int64
 } {
@@ -352,16 +352,16 @@ func (mock *QMock) DeleteAgentCalls() []struct {
 		Ctx context.Context
 		ID  int64
 	}
-	lockQMockDeleteAgent.RLock()
+	lockQuerentMockDeleteAgent.RLock()
 	calls = mock.calls.DeleteAgent
-	lockQMockDeleteAgent.RUnlock()
+	lockQuerentMockDeleteAgent.RUnlock()
 	return calls
 }
 
 // DeleteAuthor calls DeleteAuthorFunc.
-func (mock *QMock) DeleteAuthor(ctx context.Context, id int64) (sqlc.Author, error) {
+func (mock *QuerentMock) DeleteAuthor(ctx context.Context, id int64) (sqlc.Author, error) {
 	if mock.DeleteAuthorFunc == nil {
-		panic("QMock.DeleteAuthorFunc: method is nil but Q.DeleteAuthor was just called")
+		panic("QuerentMock.DeleteAuthorFunc: method is nil but Querent.DeleteAuthor was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -370,16 +370,16 @@ func (mock *QMock) DeleteAuthor(ctx context.Context, id int64) (sqlc.Author, err
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockQMockDeleteAuthor.Lock()
+	lockQuerentMockDeleteAuthor.Lock()
 	mock.calls.DeleteAuthor = append(mock.calls.DeleteAuthor, callInfo)
-	lockQMockDeleteAuthor.Unlock()
+	lockQuerentMockDeleteAuthor.Unlock()
 	return mock.DeleteAuthorFunc(ctx, id)
 }
 
 // DeleteAuthorCalls gets all the calls that were made to DeleteAuthor.
 // Check the length with:
-//     len(mockedQ.DeleteAuthorCalls())
-func (mock *QMock) DeleteAuthorCalls() []struct {
+//     len(mockedQuerent.DeleteAuthorCalls())
+func (mock *QuerentMock) DeleteAuthorCalls() []struct {
 	Ctx context.Context
 	ID  int64
 } {
@@ -387,16 +387,16 @@ func (mock *QMock) DeleteAuthorCalls() []struct {
 		Ctx context.Context
 		ID  int64
 	}
-	lockQMockDeleteAuthor.RLock()
+	lockQuerentMockDeleteAuthor.RLock()
 	calls = mock.calls.DeleteAuthor
-	lockQMockDeleteAuthor.RUnlock()
+	lockQuerentMockDeleteAuthor.RUnlock()
 	return calls
 }
 
 // DeleteBook calls DeleteBookFunc.
-func (mock *QMock) DeleteBook(ctx context.Context, id int64) (sqlc.Book, error) {
+func (mock *QuerentMock) DeleteBook(ctx context.Context, id int64) (sqlc.Book, error) {
 	if mock.DeleteBookFunc == nil {
-		panic("QMock.DeleteBookFunc: method is nil but Q.DeleteBook was just called")
+		panic("QuerentMock.DeleteBookFunc: method is nil but Querent.DeleteBook was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -405,16 +405,16 @@ func (mock *QMock) DeleteBook(ctx context.Context, id int64) (sqlc.Book, error) 
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockQMockDeleteBook.Lock()
+	lockQuerentMockDeleteBook.Lock()
 	mock.calls.DeleteBook = append(mock.calls.DeleteBook, callInfo)
-	lockQMockDeleteBook.Unlock()
+	lockQuerentMockDeleteBook.Unlock()
 	return mock.DeleteBookFunc(ctx, id)
 }
 
 // DeleteBookCalls gets all the calls that were made to DeleteBook.
 // Check the length with:
-//     len(mockedQ.DeleteBookCalls())
-func (mock *QMock) DeleteBookCalls() []struct {
+//     len(mockedQuerent.DeleteBookCalls())
+func (mock *QuerentMock) DeleteBookCalls() []struct {
 	Ctx context.Context
 	ID  int64
 } {
@@ -422,16 +422,16 @@ func (mock *QMock) DeleteBookCalls() []struct {
 		Ctx context.Context
 		ID  int64
 	}
-	lockQMockDeleteBook.RLock()
+	lockQuerentMockDeleteBook.RLock()
 	calls = mock.calls.DeleteBook
-	lockQMockDeleteBook.RUnlock()
+	lockQuerentMockDeleteBook.RUnlock()
 	return calls
 }
 
 // GetAgent calls GetAgentFunc.
-func (mock *QMock) GetAgent(ctx context.Context, id int64) (sqlc.Agent, error) {
+func (mock *QuerentMock) GetAgent(ctx context.Context, id int64) (sqlc.Agent, error) {
 	if mock.GetAgentFunc == nil {
-		panic("QMock.GetAgentFunc: method is nil but Q.GetAgent was just called")
+		panic("QuerentMock.GetAgentFunc: method is nil but Querent.GetAgent was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -440,16 +440,16 @@ func (mock *QMock) GetAgent(ctx context.Context, id int64) (sqlc.Agent, error) {
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockQMockGetAgent.Lock()
+	lockQuerentMockGetAgent.Lock()
 	mock.calls.GetAgent = append(mock.calls.GetAgent, callInfo)
-	lockQMockGetAgent.Unlock()
+	lockQuerentMockGetAgent.Unlock()
 	return mock.GetAgentFunc(ctx, id)
 }
 
 // GetAgentCalls gets all the calls that were made to GetAgent.
 // Check the length with:
-//     len(mockedQ.GetAgentCalls())
-func (mock *QMock) GetAgentCalls() []struct {
+//     len(mockedQuerent.GetAgentCalls())
+func (mock *QuerentMock) GetAgentCalls() []struct {
 	Ctx context.Context
 	ID  int64
 } {
@@ -457,16 +457,16 @@ func (mock *QMock) GetAgentCalls() []struct {
 		Ctx context.Context
 		ID  int64
 	}
-	lockQMockGetAgent.RLock()
+	lockQuerentMockGetAgent.RLock()
 	calls = mock.calls.GetAgent
-	lockQMockGetAgent.RUnlock()
+	lockQuerentMockGetAgent.RUnlock()
 	return calls
 }
 
 // GetAuthor calls GetAuthorFunc.
-func (mock *QMock) GetAuthor(ctx context.Context, id int64) (sqlc.Author, error) {
+func (mock *QuerentMock) GetAuthor(ctx context.Context, id int64) (sqlc.Author, error) {
 	if mock.GetAuthorFunc == nil {
-		panic("QMock.GetAuthorFunc: method is nil but Q.GetAuthor was just called")
+		panic("QuerentMock.GetAuthorFunc: method is nil but Querent.GetAuthor was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -475,16 +475,16 @@ func (mock *QMock) GetAuthor(ctx context.Context, id int64) (sqlc.Author, error)
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockQMockGetAuthor.Lock()
+	lockQuerentMockGetAuthor.Lock()
 	mock.calls.GetAuthor = append(mock.calls.GetAuthor, callInfo)
-	lockQMockGetAuthor.Unlock()
+	lockQuerentMockGetAuthor.Unlock()
 	return mock.GetAuthorFunc(ctx, id)
 }
 
 // GetAuthorCalls gets all the calls that were made to GetAuthor.
 // Check the length with:
-//     len(mockedQ.GetAuthorCalls())
-func (mock *QMock) GetAuthorCalls() []struct {
+//     len(mockedQuerent.GetAuthorCalls())
+func (mock *QuerentMock) GetAuthorCalls() []struct {
 	Ctx context.Context
 	ID  int64
 } {
@@ -492,16 +492,16 @@ func (mock *QMock) GetAuthorCalls() []struct {
 		Ctx context.Context
 		ID  int64
 	}
-	lockQMockGetAuthor.RLock()
+	lockQuerentMockGetAuthor.RLock()
 	calls = mock.calls.GetAuthor
-	lockQMockGetAuthor.RUnlock()
+	lockQuerentMockGetAuthor.RUnlock()
 	return calls
 }
 
 // GetBook calls GetBookFunc.
-func (mock *QMock) GetBook(ctx context.Context, id int64) (sqlc.Book, error) {
+func (mock *QuerentMock) GetBook(ctx context.Context, id int64) (sqlc.Book, error) {
 	if mock.GetBookFunc == nil {
-		panic("QMock.GetBookFunc: method is nil but Q.GetBook was just called")
+		panic("QuerentMock.GetBookFunc: method is nil but Querent.GetBook was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
@@ -510,16 +510,16 @@ func (mock *QMock) GetBook(ctx context.Context, id int64) (sqlc.Book, error) {
 		Ctx: ctx,
 		ID:  id,
 	}
-	lockQMockGetBook.Lock()
+	lockQuerentMockGetBook.Lock()
 	mock.calls.GetBook = append(mock.calls.GetBook, callInfo)
-	lockQMockGetBook.Unlock()
+	lockQuerentMockGetBook.Unlock()
 	return mock.GetBookFunc(ctx, id)
 }
 
 // GetBookCalls gets all the calls that were made to GetBook.
 // Check the length with:
-//     len(mockedQ.GetBookCalls())
-func (mock *QMock) GetBookCalls() []struct {
+//     len(mockedQuerent.GetBookCalls())
+func (mock *QuerentMock) GetBookCalls() []struct {
 	Ctx context.Context
 	ID  int64
 } {
@@ -527,78 +527,78 @@ func (mock *QMock) GetBookCalls() []struct {
 		Ctx context.Context
 		ID  int64
 	}
-	lockQMockGetBook.RLock()
+	lockQuerentMockGetBook.RLock()
 	calls = mock.calls.GetBook
-	lockQMockGetBook.RUnlock()
+	lockQuerentMockGetBook.RUnlock()
 	return calls
 }
 
 // ListAgents calls ListAgentsFunc.
-func (mock *QMock) ListAgents(ctx context.Context) ([]sqlc.Agent, error) {
+func (mock *QuerentMock) ListAgents(ctx context.Context) ([]sqlc.Agent, error) {
 	if mock.ListAgentsFunc == nil {
-		panic("QMock.ListAgentsFunc: method is nil but Q.ListAgents was just called")
+		panic("QuerentMock.ListAgentsFunc: method is nil but Querent.ListAgents was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
 	}{
 		Ctx: ctx,
 	}
-	lockQMockListAgents.Lock()
+	lockQuerentMockListAgents.Lock()
 	mock.calls.ListAgents = append(mock.calls.ListAgents, callInfo)
-	lockQMockListAgents.Unlock()
+	lockQuerentMockListAgents.Unlock()
 	return mock.ListAgentsFunc(ctx)
 }
 
 // ListAgentsCalls gets all the calls that were made to ListAgents.
 // Check the length with:
-//     len(mockedQ.ListAgentsCalls())
-func (mock *QMock) ListAgentsCalls() []struct {
+//     len(mockedQuerent.ListAgentsCalls())
+func (mock *QuerentMock) ListAgentsCalls() []struct {
 	Ctx context.Context
 } {
 	var calls []struct {
 		Ctx context.Context
 	}
-	lockQMockListAgents.RLock()
+	lockQuerentMockListAgents.RLock()
 	calls = mock.calls.ListAgents
-	lockQMockListAgents.RUnlock()
+	lockQuerentMockListAgents.RUnlock()
 	return calls
 }
 
 // ListAuthors calls ListAuthorsFunc.
-func (mock *QMock) ListAuthors(ctx context.Context) ([]sqlc.Author, error) {
+func (mock *QuerentMock) ListAuthors(ctx context.Context) ([]sqlc.Author, error) {
 	if mock.ListAuthorsFunc == nil {
-		panic("QMock.ListAuthorsFunc: method is nil but Q.ListAuthors was just called")
+		panic("QuerentMock.ListAuthorsFunc: method is nil but Querent.ListAuthors was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
 	}{
 		Ctx: ctx,
 	}
-	lockQMockListAuthors.Lock()
+	lockQuerentMockListAuthors.Lock()
 	mock.calls.ListAuthors = append(mock.calls.ListAuthors, callInfo)
-	lockQMockListAuthors.Unlock()
+	lockQuerentMockListAuthors.Unlock()
 	return mock.ListAuthorsFunc(ctx)
 }
 
 // ListAuthorsCalls gets all the calls that were made to ListAuthors.
 // Check the length with:
-//     len(mockedQ.ListAuthorsCalls())
-func (mock *QMock) ListAuthorsCalls() []struct {
+//     len(mockedQuerent.ListAuthorsCalls())
+func (mock *QuerentMock) ListAuthorsCalls() []struct {
 	Ctx context.Context
 } {
 	var calls []struct {
 		Ctx context.Context
 	}
-	lockQMockListAuthors.RLock()
+	lockQuerentMockListAuthors.RLock()
 	calls = mock.calls.ListAuthors
-	lockQMockListAuthors.RUnlock()
+	lockQuerentMockListAuthors.RUnlock()
 	return calls
 }
 
 // ListAuthorsByAgentID calls ListAuthorsByAgentIDFunc.
-func (mock *QMock) ListAuthorsByAgentID(ctx context.Context, agentID int64) ([]sqlc.Author, error) {
+func (mock *QuerentMock) ListAuthorsByAgentID(ctx context.Context, agentID int64) ([]sqlc.Author, error) {
 	if mock.ListAuthorsByAgentIDFunc == nil {
-		panic("QMock.ListAuthorsByAgentIDFunc: method is nil but Q.ListAuthorsByAgentID was just called")
+		panic("QuerentMock.ListAuthorsByAgentIDFunc: method is nil but Querent.ListAuthorsByAgentID was just called")
 	}
 	callInfo := struct {
 		Ctx     context.Context
@@ -607,16 +607,16 @@ func (mock *QMock) ListAuthorsByAgentID(ctx context.Context, agentID int64) ([]s
 		Ctx:     ctx,
 		AgentID: agentID,
 	}
-	lockQMockListAuthorsByAgentID.Lock()
+	lockQuerentMockListAuthorsByAgentID.Lock()
 	mock.calls.ListAuthorsByAgentID = append(mock.calls.ListAuthorsByAgentID, callInfo)
-	lockQMockListAuthorsByAgentID.Unlock()
+	lockQuerentMockListAuthorsByAgentID.Unlock()
 	return mock.ListAuthorsByAgentIDFunc(ctx, agentID)
 }
 
 // ListAuthorsByAgentIDCalls gets all the calls that were made to ListAuthorsByAgentID.
 // Check the length with:
-//     len(mockedQ.ListAuthorsByAgentIDCalls())
-func (mock *QMock) ListAuthorsByAgentIDCalls() []struct {
+//     len(mockedQuerent.ListAuthorsByAgentIDCalls())
+func (mock *QuerentMock) ListAuthorsByAgentIDCalls() []struct {
 	Ctx     context.Context
 	AgentID int64
 } {
@@ -624,16 +624,16 @@ func (mock *QMock) ListAuthorsByAgentIDCalls() []struct {
 		Ctx     context.Context
 		AgentID int64
 	}
-	lockQMockListAuthorsByAgentID.RLock()
+	lockQuerentMockListAuthorsByAgentID.RLock()
 	calls = mock.calls.ListAuthorsByAgentID
-	lockQMockListAuthorsByAgentID.RUnlock()
+	lockQuerentMockListAuthorsByAgentID.RUnlock()
 	return calls
 }
 
 // ListAuthorsByBookID calls ListAuthorsByBookIDFunc.
-func (mock *QMock) ListAuthorsByBookID(ctx context.Context, bookID int64) ([]sqlc.Author, error) {
+func (mock *QuerentMock) ListAuthorsByBookID(ctx context.Context, bookID int64) ([]sqlc.Author, error) {
 	if mock.ListAuthorsByBookIDFunc == nil {
-		panic("QMock.ListAuthorsByBookIDFunc: method is nil but Q.ListAuthorsByBookID was just called")
+		panic("QuerentMock.ListAuthorsByBookIDFunc: method is nil but Querent.ListAuthorsByBookID was just called")
 	}
 	callInfo := struct {
 		Ctx    context.Context
@@ -642,16 +642,16 @@ func (mock *QMock) ListAuthorsByBookID(ctx context.Context, bookID int64) ([]sql
 		Ctx:    ctx,
 		BookID: bookID,
 	}
-	lockQMockListAuthorsByBookID.Lock()
+	lockQuerentMockListAuthorsByBookID.Lock()
 	mock.calls.ListAuthorsByBookID = append(mock.calls.ListAuthorsByBookID, callInfo)
-	lockQMockListAuthorsByBookID.Unlock()
+	lockQuerentMockListAuthorsByBookID.Unlock()
 	return mock.ListAuthorsByBookIDFunc(ctx, bookID)
 }
 
 // ListAuthorsByBookIDCalls gets all the calls that were made to ListAuthorsByBookID.
 // Check the length with:
-//     len(mockedQ.ListAuthorsByBookIDCalls())
-func (mock *QMock) ListAuthorsByBookIDCalls() []struct {
+//     len(mockedQuerent.ListAuthorsByBookIDCalls())
+func (mock *QuerentMock) ListAuthorsByBookIDCalls() []struct {
 	Ctx    context.Context
 	BookID int64
 } {
@@ -659,47 +659,47 @@ func (mock *QMock) ListAuthorsByBookIDCalls() []struct {
 		Ctx    context.Context
 		BookID int64
 	}
-	lockQMockListAuthorsByBookID.RLock()
+	lockQuerentMockListAuthorsByBookID.RLock()
 	calls = mock.calls.ListAuthorsByBookID
-	lockQMockListAuthorsByBookID.RUnlock()
+	lockQuerentMockListAuthorsByBookID.RUnlock()
 	return calls
 }
 
 // ListBooks calls ListBooksFunc.
-func (mock *QMock) ListBooks(ctx context.Context) ([]sqlc.Book, error) {
+func (mock *QuerentMock) ListBooks(ctx context.Context) ([]sqlc.Book, error) {
 	if mock.ListBooksFunc == nil {
-		panic("QMock.ListBooksFunc: method is nil but Q.ListBooks was just called")
+		panic("QuerentMock.ListBooksFunc: method is nil but Querent.ListBooks was just called")
 	}
 	callInfo := struct {
 		Ctx context.Context
 	}{
 		Ctx: ctx,
 	}
-	lockQMockListBooks.Lock()
+	lockQuerentMockListBooks.Lock()
 	mock.calls.ListBooks = append(mock.calls.ListBooks, callInfo)
-	lockQMockListBooks.Unlock()
+	lockQuerentMockListBooks.Unlock()
 	return mock.ListBooksFunc(ctx)
 }
 
 // ListBooksCalls gets all the calls that were made to ListBooks.
 // Check the length with:
-//     len(mockedQ.ListBooksCalls())
-func (mock *QMock) ListBooksCalls() []struct {
+//     len(mockedQuerent.ListBooksCalls())
+func (mock *QuerentMock) ListBooksCalls() []struct {
 	Ctx context.Context
 } {
 	var calls []struct {
 		Ctx context.Context
 	}
-	lockQMockListBooks.RLock()
+	lockQuerentMockListBooks.RLock()
 	calls = mock.calls.ListBooks
-	lockQMockListBooks.RUnlock()
+	lockQuerentMockListBooks.RUnlock()
 	return calls
 }
 
 // ListBooksByAuthorID calls ListBooksByAuthorIDFunc.
-func (mock *QMock) ListBooksByAuthorID(ctx context.Context, authorID int64) ([]sqlc.Book, error) {
+func (mock *QuerentMock) ListBooksByAuthorID(ctx context.Context, authorID int64) ([]sqlc.Book, error) {
 	if mock.ListBooksByAuthorIDFunc == nil {
-		panic("QMock.ListBooksByAuthorIDFunc: method is nil but Q.ListBooksByAuthorID was just called")
+		panic("QuerentMock.ListBooksByAuthorIDFunc: method is nil but Querent.ListBooksByAuthorID was just called")
 	}
 	callInfo := struct {
 		Ctx      context.Context
@@ -708,16 +708,16 @@ func (mock *QMock) ListBooksByAuthorID(ctx context.Context, authorID int64) ([]s
 		Ctx:      ctx,
 		AuthorID: authorID,
 	}
-	lockQMockListBooksByAuthorID.Lock()
+	lockQuerentMockListBooksByAuthorID.Lock()
 	mock.calls.ListBooksByAuthorID = append(mock.calls.ListBooksByAuthorID, callInfo)
-	lockQMockListBooksByAuthorID.Unlock()
+	lockQuerentMockListBooksByAuthorID.Unlock()
 	return mock.ListBooksByAuthorIDFunc(ctx, authorID)
 }
 
 // ListBooksByAuthorIDCalls gets all the calls that were made to ListBooksByAuthorID.
 // Check the length with:
-//     len(mockedQ.ListBooksByAuthorIDCalls())
-func (mock *QMock) ListBooksByAuthorIDCalls() []struct {
+//     len(mockedQuerent.ListBooksByAuthorIDCalls())
+func (mock *QuerentMock) ListBooksByAuthorIDCalls() []struct {
 	Ctx      context.Context
 	AuthorID int64
 } {
@@ -725,16 +725,16 @@ func (mock *QMock) ListBooksByAuthorIDCalls() []struct {
 		Ctx      context.Context
 		AuthorID int64
 	}
-	lockQMockListBooksByAuthorID.RLock()
+	lockQuerentMockListBooksByAuthorID.RLock()
 	calls = mock.calls.ListBooksByAuthorID
-	lockQMockListBooksByAuthorID.RUnlock()
+	lockQuerentMockListBooksByAuthorID.RUnlock()
 	return calls
 }
 
 // UpdateAgent calls UpdateAgentFunc.
-func (mock *QMock) UpdateAgent(ctx context.Context, args sqlc.UpdateAgentParams) (sqlc.Agent, error) {
+func (mock *QuerentMock) UpdateAgent(ctx context.Context, args sqlc.UpdateAgentParams) (sqlc.Agent, error) {
 	if mock.UpdateAgentFunc == nil {
-		panic("QMock.UpdateAgentFunc: method is nil but Q.UpdateAgent was just called")
+		panic("QuerentMock.UpdateAgentFunc: method is nil but Querent.UpdateAgent was just called")
 	}
 	callInfo := struct {
 		Ctx  context.Context
@@ -743,16 +743,16 @@ func (mock *QMock) UpdateAgent(ctx context.Context, args sqlc.UpdateAgentParams)
 		Ctx:  ctx,
 		Args: args,
 	}
-	lockQMockUpdateAgent.Lock()
+	lockQuerentMockUpdateAgent.Lock()
 	mock.calls.UpdateAgent = append(mock.calls.UpdateAgent, callInfo)
-	lockQMockUpdateAgent.Unlock()
+	lockQuerentMockUpdateAgent.Unlock()
 	return mock.UpdateAgentFunc(ctx, args)
 }
 
 // UpdateAgentCalls gets all the calls that were made to UpdateAgent.
 // Check the length with:
-//     len(mockedQ.UpdateAgentCalls())
-func (mock *QMock) UpdateAgentCalls() []struct {
+//     len(mockedQuerent.UpdateAgentCalls())
+func (mock *QuerentMock) UpdateAgentCalls() []struct {
 	Ctx  context.Context
 	Args sqlc.UpdateAgentParams
 } {
@@ -760,16 +760,16 @@ func (mock *QMock) UpdateAgentCalls() []struct {
 		Ctx  context.Context
 		Args sqlc.UpdateAgentParams
 	}
-	lockQMockUpdateAgent.RLock()
+	lockQuerentMockUpdateAgent.RLock()
 	calls = mock.calls.UpdateAgent
-	lockQMockUpdateAgent.RUnlock()
+	lockQuerentMockUpdateAgent.RUnlock()
 	return calls
 }
 
 // UpdateAuthor calls UpdateAuthorFunc.
-func (mock *QMock) UpdateAuthor(ctx context.Context, args sqlc.UpdateAuthorParams) (sqlc.Author, error) {
+func (mock *QuerentMock) UpdateAuthor(ctx context.Context, args sqlc.UpdateAuthorParams) (sqlc.Author, error) {
 	if mock.UpdateAuthorFunc == nil {
-		panic("QMock.UpdateAuthorFunc: method is nil but Q.UpdateAuthor was just called")
+		panic("QuerentMock.UpdateAuthorFunc: method is nil but Querent.UpdateAuthor was just called")
 	}
 	callInfo := struct {
 		Ctx  context.Context
@@ -778,16 +778,16 @@ func (mock *QMock) UpdateAuthor(ctx context.Context, args sqlc.UpdateAuthorParam
 		Ctx:  ctx,
 		Args: args,
 	}
-	lockQMockUpdateAuthor.Lock()
+	lockQuerentMockUpdateAuthor.Lock()
 	mock.calls.UpdateAuthor = append(mock.calls.UpdateAuthor, callInfo)
-	lockQMockUpdateAuthor.Unlock()
+	lockQuerentMockUpdateAuthor.Unlock()
 	return mock.UpdateAuthorFunc(ctx, args)
 }
 
 // UpdateAuthorCalls gets all the calls that were made to UpdateAuthor.
 // Check the length with:
-//     len(mockedQ.UpdateAuthorCalls())
-func (mock *QMock) UpdateAuthorCalls() []struct {
+//     len(mockedQuerent.UpdateAuthorCalls())
+func (mock *QuerentMock) UpdateAuthorCalls() []struct {
 	Ctx  context.Context
 	Args sqlc.UpdateAuthorParams
 } {
@@ -795,8 +795,8 @@ func (mock *QMock) UpdateAuthorCalls() []struct {
 		Ctx  context.Context
 		Args sqlc.UpdateAuthorParams
 	}
-	lockQMockUpdateAuthor.RLock()
+	lockQuerentMockUpdateAuthor.RLock()
 	calls = mock.calls.UpdateAuthor
-	lockQMockUpdateAuthor.RUnlock()
+	lockQuerentMockUpdateAuthor.RUnlock()
 	return calls
 }

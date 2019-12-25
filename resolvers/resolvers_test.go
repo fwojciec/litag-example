@@ -57,7 +57,7 @@ func TestAgentResolver(t *testing.T) {
 				var receivedAgentID int64
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							ListAuthorsByAgentIDFunc: func(ctx context.Context, agentID int64) ([]sqlc.Author, error) {
 								receivedAgentID = agentID
 								return nil, tc.err
@@ -128,7 +128,7 @@ func TestAuthorResolver(t *testing.T) {
 				var receivedAgentID int64
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							GetAgentFunc: func(ctx context.Context, id int64) (sqlc.Agent, error) {
 								receivedAgentID = id
 								return sqlc.Agent{}, tc.err
@@ -164,7 +164,7 @@ func TestAuthorResolver(t *testing.T) {
 				var receivedAuthorID int64
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							ListBooksByAuthorIDFunc: func(ctx context.Context, authorID int64) ([]sqlc.Book, error) {
 								receivedAuthorID = authorID
 								return nil, tc.err
@@ -203,7 +203,7 @@ func TestBookResolver(t *testing.T) {
 				var receivedBookID int64
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							ListAuthorsByBookIDFunc: func(ctx context.Context, bookID int64) ([]sqlc.Author, error) {
 								receivedBookID = bookID
 								return nil, tc.err
@@ -246,7 +246,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedCreateAgentParams sqlc.CreateAgentParams
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							Q: &mocks.QMock{
+							Querent: &mocks.QuerentMock{
 								CreateAgentFunc: func(ctx context.Context, args sqlc.CreateAgentParams) (sqlc.Agent, error) {
 									receivedCreateAgentParams = args
 									return sqlc.Agent{}, tc.err
@@ -281,7 +281,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedUpdateAgentParams sqlc.UpdateAgentParams
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							Q: &mocks.QMock{
+							Querent: &mocks.QuerentMock{
 								UpdateAgentFunc: func(ctx context.Context, args sqlc.UpdateAgentParams) (sqlc.Agent, error) {
 									receivedUpdateAgentParams = args
 									return sqlc.Agent{}, tc.err
@@ -317,7 +317,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedAgentID int64
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							Q: &mocks.QMock{
+							Querent: &mocks.QuerentMock{
 								DeleteAgentFunc: func(ctx context.Context, id int64) (sqlc.Agent, error) {
 									receivedAgentID = id
 									return sqlc.Agent{}, tc.err
@@ -358,7 +358,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedCreateAuthorParams sqlc.CreateAuthorParams
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							Q: &mocks.QMock{
+							Querent: &mocks.QuerentMock{
 								CreateAuthorFunc: func(ctx context.Context, args sqlc.CreateAuthorParams) (sqlc.Author, error) {
 									receivedCreateAuthorParams = args
 									return sqlc.Author{}, tc.err
@@ -395,7 +395,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedUpdateAuthorParams sqlc.UpdateAuthorParams
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							Q: &mocks.QMock{
+							Querent: &mocks.QuerentMock{
 								UpdateAuthorFunc: func(ctx context.Context, args sqlc.UpdateAuthorParams) (sqlc.Author, error) {
 									receivedUpdateAuthorParams = args
 									return sqlc.Author{}, tc.err
@@ -433,7 +433,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedAuthorID int64
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							Q: &mocks.QMock{
+							Querent: &mocks.QuerentMock{
 								DeleteAuthorFunc: func(ctx context.Context, id int64) (sqlc.Author, error) {
 									receivedAuthorID = id
 									return sqlc.Author{}, tc.err
@@ -475,7 +475,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedAuthorIDs []int64
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							TxQ: &mocks.TxQMock{
+							TxQuerent: &mocks.TxQuerentMock{
 								CreateBookFunc: func(ctx context.Context, args sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error) {
 									receivedCreateBookParams = args
 									receivedAuthorIDs = authorIDs
@@ -518,7 +518,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedAuthorIDs []int64
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							TxQ: &mocks.TxQMock{
+							TxQuerent: &mocks.TxQuerentMock{
 								UpdateBookFunc: func(ctx context.Context, args sqlc.UpdateBookParams, authorIDs []int64) (*sqlc.Book, error) {
 									receivedUpdateBookParams = args
 									receivedAuthorIDs = authorIDs
@@ -561,7 +561,7 @@ func TestMutationResolver(t *testing.T) {
 					var receivedBookID int64
 					r := &resolvers.Resolver{
 						Repo: &postgres.Repo{
-							Q: &mocks.QMock{
+							Querent: &mocks.QuerentMock{
 								DeleteBookFunc: func(ctx context.Context, id int64) (sqlc.Book, error) {
 									receivedBookID = id
 									return sqlc.Book{}, tc.err
@@ -602,7 +602,7 @@ func TestQueryResolver(t *testing.T) {
 				var receivedID int64
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							GetAgentFunc: func(ctx context.Context, id int64) (sqlc.Agent, error) {
 								receivedID = id
 								return sqlc.Agent{}, tc.err
@@ -636,7 +636,7 @@ func TestQueryResolver(t *testing.T) {
 				t.Parallel()
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							ListAgentsFunc: func(ctx context.Context) ([]sqlc.Agent, error) {
 								return nil, tc.err
 							},
@@ -668,7 +668,7 @@ func TestQueryResolver(t *testing.T) {
 				var receivedID int64
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							GetAuthorFunc: func(ctx context.Context, id int64) (sqlc.Author, error) {
 								receivedID = id
 								return sqlc.Author{}, tc.err
@@ -702,7 +702,7 @@ func TestQueryResolver(t *testing.T) {
 				t.Parallel()
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							ListAuthorsFunc: func(ctx context.Context) ([]sqlc.Author, error) {
 								return nil, tc.err
 							},
@@ -734,7 +734,7 @@ func TestQueryResolver(t *testing.T) {
 				var receivedID int64
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							GetBookFunc: func(ctx context.Context, id int64) (sqlc.Book, error) {
 								receivedID = id
 								return sqlc.Book{}, tc.err
@@ -768,7 +768,7 @@ func TestQueryResolver(t *testing.T) {
 				t.Parallel()
 				r := &resolvers.Resolver{
 					Repo: &postgres.Repo{
-						Q: &mocks.QMock{
+						Querent: &mocks.QuerentMock{
 							ListBooksFunc: func(ctx context.Context) ([]sqlc.Book, error) {
 								return nil, tc.err
 							},

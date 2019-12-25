@@ -7,9 +7,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/fwojciec/litag-example/generated/gqlgen" // update username to point to your repo
-	"github.com/fwojciec/litag-example/generated/sqlc"   // update username to point to your repo
-	"github.com/fwojciec/litag-example/postgres"         // update username to point to your repo
+	"github.com/fwojciec/litag-example/generated/gqlgen" // update the username
+	"github.com/fwojciec/litag-example/generated/sqlc"   // update the username
+	"github.com/fwojciec/litag-example/postgres"         // update the username
 )
 
 // Resolver connects individual resolvers with the datalayer.

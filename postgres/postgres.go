@@ -10,20 +10,20 @@ import (
 
 // Repo represents PostgreSQL-backed datalayer functionality.
 type Repo struct {
-	Q
-	TxQ
+	Querent
+	TxQuerent
 }
 
-// NewRepo returns a pointer to a new instance of Repo.
+// NewRepo returns a new instance of Repo.
 func NewRepo(db *sql.DB) *Repo {
 	return &Repo{
-		Q:   sqlc.New(db),
-		TxQ: &txqService{db},
+		Querent:   sqlc.New(db),
+		TxQuerent: &txQuerentService{db},
 	}
 }
 
-// Q represents database queries.
-type Q interface {
+// Querent represents database query methods.
+type Querent interface {
 	// agent queries
 	CreateAgent(ctx context.Context, args sqlc.CreateAgentParams) (sqlc.Agent, error)
 	DeleteAgent(ctx context.Context, id int64) (sqlc.Agent, error)
@@ -47,21 +47,31 @@ type Q interface {
 	ListBooksByAuthorID(ctx context.Context, authorID int64) ([]sqlc.Book, error)
 }
 
-// TxQ represents queries performed using a transaction.
-type TxQ interface {
-	CreateBook(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error)
-	UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookParams, authorIDs []int64) (*sqlc.Book, error)
+// TxQuerent represents database query methods performed using a transaction.
+type TxQuerent interface {
+	CreateBook(
+		ctx context.Context,
+		bookArgs sqlc.CreateBookParams,
+		authorIDs []int64,
+	) (*sqlc.Book, error)
+	UpdateBook(
+		ctx context.Context,
+		bookArgs sqlc.UpdateBookParams,
+		authorIDs []int64,
+	) (*sqlc.Book, error)
 }
 
-type txqService struct {
+type txQuerentService struct {
 	db *sql.DB
 }
 
-func (txq *txqService) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error) {
-	tx, q, err := txq.init(ctx)
+func (txq *txQuerentService) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error) {
+	// begin the transaction
+	tx, err := txq.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
+	q := sqlc.New(tx)
 	book, err := q.CreateBook(ctx, bookArgs)
 	if err != nil {
 		tx.Rollback()
@@ -85,11 +95,12 @@ func (txq *txqService) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookP
 	return &book, nil
 }
 
-func (txq *txqService) UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookParams, authorIDs []int64) (*sqlc.Book, error) {
-	tx, q, err := txq.init(ctx)
+func (txq *txQuerentService) UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookParams, authorIDs []int64) (*sqlc.Book, error) {
+	tx, err := txq.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
+	q := sqlc.New(tx)
 	book, err := q.UpdateBook(ctx, bookArgs)
 	if err != nil {
 		tx.Rollback()
@@ -116,13 +127,4 @@ func (txq *txqService) UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookP
 		return nil, err
 	}
 	return &book, nil
-}
-
-func (txq *txqService) init(ctx context.Context) (*sql.Tx, *sqlc.Queries, error) {
-	tx, err := txq.db.BeginTx(ctx, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	q := sqlc.New(tx)
-	return tx, q, nil
 }

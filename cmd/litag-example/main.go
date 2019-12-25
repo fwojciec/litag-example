@@ -7,14 +7,14 @@ import (
 	"net/http"
 
 	"github.com/99designs/gqlgen/handler"
-	"github.com/fwojciec/litag-example/generated/gqlgen" // remember to update your username
-	"github.com/fwojciec/litag-example/postgres"         // remember to update your username
-	"github.com/fwojciec/litag-example/resolvers"        // remember to update your username
+	"github.com/fwojciec/litag-example/generated/gqlgen" // update your username
+	"github.com/fwojciec/litag-example/postgres"         // update your username
+	"github.com/fwojciec/litag-example/resolvers"        // update your username
 )
 
 func main() {
 	// initialize the db
-	db, err := sql.Open("postgres", "dbname=litag_example_db sslmode=disable")
+	db, err := sql.Open("postgres", "dbname=litag_db sslmode=disable")
 	if err != nil {
 		panic(err)
 	}

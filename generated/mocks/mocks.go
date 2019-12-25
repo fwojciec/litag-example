@@ -1,4 +1,4 @@
 package mocks
 
-//go:generate moq -out q.go -pkg mocks ../../postgres Q
-//go:generate moq -out txq.go -pkg mocks ../../postgres TxQ
+//go:generate moq -out querent.go -pkg mocks ../../postgres Querent
+//go:generate moq -out txquerent.go -pkg mocks ../../postgres TxQuerent

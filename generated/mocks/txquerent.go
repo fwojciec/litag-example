@@ -11,20 +11,20 @@ import (
 )
 
 var (
-	lockTxQMockCreateBook sync.RWMutex
-	lockTxQMockUpdateBook sync.RWMutex
+	lockTxQuerentMockCreateBook sync.RWMutex
+	lockTxQuerentMockUpdateBook sync.RWMutex
 )
 
-// Ensure, that TxQMock does implement postgres.TxQ.
+// Ensure, that TxQuerentMock does implement postgres.TxQuerent.
 // If this is not the case, regenerate this file with moq.
-var _ postgres.TxQ = &TxQMock{}
+var _ postgres.TxQuerent = &TxQuerentMock{}
 
-// TxQMock is a mock implementation of postgres.TxQ.
+// TxQuerentMock is a mock implementation of postgres.TxQuerent.
 //
-//     func TestSomethingThatUsesTxQ(t *testing.T) {
+//     func TestSomethingThatUsesTxQuerent(t *testing.T) {
 //
-//         // make and configure a mocked postgres.TxQ
-//         mockedTxQ := &TxQMock{
+//         // make and configure a mocked postgres.TxQuerent
+//         mockedTxQuerent := &TxQuerentMock{
 //             CreateBookFunc: func(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error) {
 // 	               panic("mock out the CreateBook method")
 //             },
@@ -33,11 +33,11 @@ var _ postgres.TxQ = &TxQMock{}
 //             },
 //         }
 //
-//         // use mockedTxQ in code that requires postgres.TxQ
+//         // use mockedTxQuerent in code that requires postgres.TxQuerent
 //         // and then make assertions.
 //
 //     }
-type TxQMock struct {
+type TxQuerentMock struct {
 	// CreateBookFunc mocks the CreateBook method.
 	CreateBookFunc func(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error)
 
@@ -68,9 +68,9 @@ type TxQMock struct {
 }
 
 // CreateBook calls CreateBookFunc.
-func (mock *TxQMock) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error) {
+func (mock *TxQuerentMock) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookParams, authorIDs []int64) (*sqlc.Book, error) {
 	if mock.CreateBookFunc == nil {
-		panic("TxQMock.CreateBookFunc: method is nil but TxQ.CreateBook was just called")
+		panic("TxQuerentMock.CreateBookFunc: method is nil but TxQuerent.CreateBook was just called")
 	}
 	callInfo := struct {
 		Ctx       context.Context
@@ -81,16 +81,16 @@ func (mock *TxQMock) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookPar
 		BookArgs:  bookArgs,
 		AuthorIDs: authorIDs,
 	}
-	lockTxQMockCreateBook.Lock()
+	lockTxQuerentMockCreateBook.Lock()
 	mock.calls.CreateBook = append(mock.calls.CreateBook, callInfo)
-	lockTxQMockCreateBook.Unlock()
+	lockTxQuerentMockCreateBook.Unlock()
 	return mock.CreateBookFunc(ctx, bookArgs, authorIDs)
 }
 
 // CreateBookCalls gets all the calls that were made to CreateBook.
 // Check the length with:
-//     len(mockedTxQ.CreateBookCalls())
-func (mock *TxQMock) CreateBookCalls() []struct {
+//     len(mockedTxQuerent.CreateBookCalls())
+func (mock *TxQuerentMock) CreateBookCalls() []struct {
 	Ctx       context.Context
 	BookArgs  sqlc.CreateBookParams
 	AuthorIDs []int64
@@ -100,16 +100,16 @@ func (mock *TxQMock) CreateBookCalls() []struct {
 		BookArgs  sqlc.CreateBookParams
 		AuthorIDs []int64
 	}
-	lockTxQMockCreateBook.RLock()
+	lockTxQuerentMockCreateBook.RLock()
 	calls = mock.calls.CreateBook
-	lockTxQMockCreateBook.RUnlock()
+	lockTxQuerentMockCreateBook.RUnlock()
 	return calls
 }
 
 // UpdateBook calls UpdateBookFunc.
-func (mock *TxQMock) UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookParams, authorIDs []int64) (*sqlc.Book, error) {
+func (mock *TxQuerentMock) UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookParams, authorIDs []int64) (*sqlc.Book, error) {
 	if mock.UpdateBookFunc == nil {
-		panic("TxQMock.UpdateBookFunc: method is nil but TxQ.UpdateBook was just called")
+		panic("TxQuerentMock.UpdateBookFunc: method is nil but TxQuerent.UpdateBook was just called")
 	}
 	callInfo := struct {
 		Ctx       context.Context
@@ -120,16 +120,16 @@ func (mock *TxQMock) UpdateBook(ctx context.Context, bookArgs sqlc.UpdateBookPar
 		BookArgs:  bookArgs,
 		AuthorIDs: authorIDs,
 	}
-	lockTxQMockUpdateBook.Lock()
+	lockTxQuerentMockUpdateBook.Lock()
 	mock.calls.UpdateBook = append(mock.calls.UpdateBook, callInfo)
-	lockTxQMockUpdateBook.Unlock()
+	lockTxQuerentMockUpdateBook.Unlock()
 	return mock.UpdateBookFunc(ctx, bookArgs, authorIDs)
 }
 
 // UpdateBookCalls gets all the calls that were made to UpdateBook.
 // Check the length with:
-//     len(mockedTxQ.UpdateBookCalls())
-func (mock *TxQMock) UpdateBookCalls() []struct {
+//     len(mockedTxQuerent.UpdateBookCalls())
+func (mock *TxQuerentMock) UpdateBookCalls() []struct {
 	Ctx       context.Context
 	BookArgs  sqlc.UpdateBookParams
 	AuthorIDs []int64
@@ -139,8 +139,8 @@ func (mock *TxQMock) UpdateBookCalls() []struct {
 		BookArgs  sqlc.UpdateBookParams
 		AuthorIDs []int64
 	}
-	lockTxQMockUpdateBook.RLock()
+	lockTxQuerentMockUpdateBook.RLock()
 	calls = mock.calls.UpdateBook
-	lockTxQMockUpdateBook.RUnlock()
+	lockTxQuerentMockUpdateBook.RUnlock()
 	return calls
 }
