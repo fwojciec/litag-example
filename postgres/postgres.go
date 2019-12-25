@@ -62,15 +62,11 @@ func (txq *txqService) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookP
 	if err != nil {
 		return nil, err
 	}
-
-	// create a book in the books table
 	book, err := q.CreateBook(ctx, bookArgs)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
-
-	// create an entry in the book_authors table for each author
 	for _, authorID := range authorIDs {
 		err := q.SetBookAuthor(ctx, sqlc.SetBookAuthorParams{
 			BookID:   book.ID,
@@ -81,8 +77,6 @@ func (txq *txqService) CreateBook(ctx context.Context, bookArgs sqlc.CreateBookP
 			return nil, err
 		}
 	}
-
-	// commit and return
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()

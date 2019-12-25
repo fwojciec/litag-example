@@ -3,427 +3,382 @@ package postgres_test
 import (
 	"context"
 	"database/sql"
+	"reflect"
 	"testing"
 
 	"github.com/fwojciec/litag-example/generated/sqlc"
 	"github.com/fwojciec/litag-example/postgres"
 )
 
+/*
+	1) Test create queries
+	2) Test list queries
+	3) Test update queries
+	4) Test get queries (on updated queries)
+	5) Test delete queries
+*/
+
 func TestQueries(t *testing.T) {
 
 	var (
-		testName1        = "test name 1"
-		testName2        = "test name 2"
-		testName3        = "test name 3"
-		testEmail1       = "test1@email.com"
-		testEmail2       = "test2@email.com"
-		testEmail3       = "test3@email.com"
-		testWebsite1     = "https://test.com"
-		testTitle1       = "book title 1"
-		testTitle2       = "book title 2"
-		testTitle3       = "book title 3"
-		testDescription1 = "description 1"
-		testDescription2 = "description 2"
-		testDescription3 = "description 3"
-		testCover1       = "cover1.jpg"
-		testCover2       = "cover2.jpg"
-		testCover3       = "cover3.jpg"
-		agentID1         int64
-		agentID2         int64
-		authorID1        int64
-		authorID2        int64
-		bookID1          int64
-		bookID2          int64
+		testAgent1 = sqlc.Agent{
+			Name:  "test agent name 1",
+			Email: "agent1@test.com",
+		}
+		testAgent2 = sqlc.Agent{
+			Name:  "test agent name 2",
+			Email: "agent2@test.com",
+		}
+		testAgentUpdated = sqlc.Agent{
+			// agent 2
+			Name:  "test agent name updated",
+			Email: "updated@test.com",
+		}
+		testAuthor1 = sqlc.Author{
+			// agent 1
+			Name:    "test author name 1",
+			Website: sql.NullString{String: "https://author1.com", Valid: true},
+		}
+		testAuthor2 = sqlc.Author{
+			// agent 2
+			Name:    "test author name 2",
+			Website: sql.NullString{},
+		}
+		testAuthorUpdated = sqlc.Author{
+			// author 2
+			// agent 1
+			Name:    "test author name updated",
+			Website: sql.NullString{String: "https://authorupdated.com", Valid: true},
+		}
+		testBook1 = sqlc.Book{
+			// authors 1 and 2
+			Title:       "book 1 title",
+			Description: "book 1 description",
+			Cover:       "book1.jpg",
+		}
+		testBook2 = sqlc.Book{
+			// author 2
+			Title:       "book 2 title",
+			Description: "book 2 description",
+			Cover:       "book2.jpg",
+		}
+		testBookUpdated = sqlc.Book{
+			// book 1
+			// author 1
+			Title:       "book title updated",
+			Description: "book description updated",
+			Cover:       "bookupdated.jpg",
+		}
 	)
 
 	runner(t, func(ctx context.Context, r *postgres.Repo, t *testing.T) {
-		t.Run("CreateAgent", func(t *testing.T) {
-			// create agent 1
-			a1, err := r.CreateAgent(ctx, sqlc.CreateAgentParams{
-				Name:  testName1,
-				Email: testEmail1,
+		t.Run("Create queries", func(t *testing.T) {
+			t.Run("CreateAgent 1", func(t *testing.T) {
+				a, err := r.CreateAgent(ctx, sqlc.CreateAgentParams{
+					Name:  testAgent1.Name,
+					Email: testAgent1.Email,
+				})
+				if err != nil {
+					t.Fatalf("failed to create agent: %s", err)
+				}
+				testAgent1.ID = a.ID
+				testAuthor1.AgentID = a.ID
+				if !reflect.DeepEqual(testAgent1, a) {
+					t.Errorf("expected %v, received %v", testAgent1, a)
+				}
 			})
-			if err != nil {
-				t.Fatalf("failed to create agent: %s", err)
-			}
-			if a1.Name != testName1 {
-				t.Errorf("expected %q, received %q", testName1, a1.Name)
-			}
-			if a1.Email != testEmail1 {
-				t.Errorf("expected %q, received %q", testEmail1, a1.Email)
-			}
-			agentID1 = a1.ID
 
-			// create agent 2
-			a2, err := r.CreateAgent(ctx, sqlc.CreateAgentParams{
-				Name:  testName2,
-				Email: testEmail2,
+			t.Run("CreateAgent 2", func(t *testing.T) {
+				a, err := r.CreateAgent(ctx, sqlc.CreateAgentParams{
+					Name:  testAgent2.Name,
+					Email: testAgent2.Email,
+				})
+				if err != nil {
+					t.Fatalf("failed to create agent: %s", err)
+				}
+				testAgent2.ID = a.ID
+				testAuthor2.AgentID = a.ID
 			})
-			if err != nil {
-				t.Fatalf("failed to create agent: %s", err)
-			}
-			agentID2 = a2.ID
-		})
 
-		t.Run("ListAgents", func(t *testing.T) {
-			l, err := r.ListAgents(ctx)
-			if err != nil {
-				t.Fatalf("failed to list agents: %s", err)
-			}
-			if len(l) != 2 {
-				t.Errorf("expected length of 2, received %d", len(l))
-			}
-			if l[0].ID != agentID1 {
-				t.Errorf("expected %d, received %d", agentID1, l[0].ID)
-			}
-			if l[0].Name != testName1 {
-				t.Errorf("expected %q, received %q", testName1, l[0].Name)
-			}
-			if l[0].Email != testEmail1 {
-				t.Errorf("expected %q, received %q", testEmail1, l[0].Email)
-			}
-			if l[1].ID != agentID2 {
-				t.Errorf("expected %d, received %d", agentID2, l[1].ID)
-			}
-		})
-
-		t.Run("UpdateAgent", func(t *testing.T) {
-			a, err := r.UpdateAgent(ctx, sqlc.UpdateAgentParams{
-				ID:    agentID2,
-				Name:  testName3,
-				Email: testEmail3,
+			t.Run("CreateAuthor 1", func(t *testing.T) {
+				a, err := r.CreateAuthor(ctx, sqlc.CreateAuthorParams{
+					Name:    testAuthor1.Name,
+					Website: testAuthor1.Website,
+					AgentID: testAuthor1.AgentID,
+				})
+				if err != nil {
+					t.Fatalf("failed to create author: %s", err)
+				}
+				testAuthor1.ID = a.ID
+				if !reflect.DeepEqual(testAuthor1, a) {
+					t.Errorf("expected %v, received %v", testAuthor1, a)
+				}
 			})
-			if err != nil {
-				t.Fatalf("failed to update agent: %s", err)
-			}
-			if a.ID != agentID2 {
-				t.Errorf("expected %d, received %d", agentID2, a.ID)
-			}
-			if a.Name != testName3 {
-				t.Errorf("expected %q, received %q", testName3, a.Name)
-			}
-			if a.Email != testEmail3 {
-				t.Errorf("expected %q, received %q", testEmail3, a.Email)
-			}
-		})
 
-		t.Run("GetAgent", func(t *testing.T) {
-			g, err := r.GetAgent(ctx, agentID2)
-			if err != nil {
-				t.Fatalf("failed to get agent: %s", err)
-			}
-			// should have the data updated in UpdateAgent above
-			if g.ID != agentID2 {
-				t.Errorf("expected %d, received %d", agentID2, g.ID)
-			}
-			if g.Name != testName3 {
-				t.Errorf("expected %q, received %q", testName3, g.Name)
-			}
-			if g.Email != testEmail3 {
-				t.Errorf("expected %q, received %q", testEmail3, g.Email)
-			}
-		})
-
-		t.Run("CreateAuthor", func(t *testing.T) {
-			a1, err := r.CreateAuthor(ctx, sqlc.CreateAuthorParams{
-				Name:    testName1,
-				Website: sql.NullString{String: testWebsite1, Valid: true},
-				AgentID: agentID1,
+			t.Run("CreateAuthor 2", func(t *testing.T) {
+				a, err := r.CreateAuthor(ctx, sqlc.CreateAuthorParams{
+					Name:    testAuthor2.Name,
+					Website: testAuthor2.Website,
+					AgentID: testAuthor2.AgentID,
+				})
+				if err != nil {
+					t.Fatalf("failed to create author: %s", err)
+				}
+				testAuthor2.ID = a.ID
 			})
-			if err != nil {
-				t.Fatalf("failed to create author: %s", err)
-			}
-			if a1.Name != testName1 {
-				t.Errorf("expected %q, received %q", testName1, a1.Name)
-			}
-			if !a1.Website.Valid {
-				t.Errorf("expected true, received %v", a1.Website.Valid)
-			}
-			if a1.Website.String != testWebsite1 {
-				t.Errorf("expected %q, received %q", testWebsite1, a1.Website.String)
-			}
-			if a1.AgentID != agentID1 {
-				t.Errorf("expected %d, received %d", agentID1, a1.AgentID)
-			}
-			authorID1 = a1.ID
-			a2, err := r.CreateAuthor(ctx, sqlc.CreateAuthorParams{
-				Name:    testName2,
-				Website: sql.NullString{},
-				AgentID: agentID2,
+
+			t.Run("CreateBook 1", func(t *testing.T) {
+				b, err := r.CreateBook(ctx, sqlc.CreateBookParams{
+					Title:       testBook1.Title,
+					Description: testBook1.Description,
+					Cover:       testBook1.Cover,
+				}, []int64{testAuthor1.ID, testAuthor2.ID})
+				if err != nil {
+					t.Fatalf("failed to create book: %s", err)
+				}
+				testBook1.ID = b.ID
+				if !reflect.DeepEqual(&testBook1, b) {
+					t.Errorf("expected %v, received %v", testBook1, b)
+				}
 			})
-			if err != nil {
-				t.Fatalf("failed to create author: %s", err)
-			}
-			authorID2 = a2.ID
-		})
 
-		t.Run("ListAuthors", func(t *testing.T) {
-			l, err := r.ListAuthors(ctx)
-			if err != nil {
-				t.Fatalf("failed to list authors: %s", err)
-			}
-			if len(l) != 2 {
-				t.Errorf("expected length of 2, received %d", len(l))
-			}
-			if l[0].ID != authorID1 {
-				t.Errorf("expected %d, received %d", authorID1, l[0].ID)
-			}
-			if l[0].Name != testName1 {
-				t.Errorf("expected %q, received %q", testName1, l[0].Name)
-			}
-			if l[0].Website.String != testWebsite1 {
-				t.Errorf("expected %q, received %q", testWebsite1, l[0].Website.String)
-			}
-			if l[1].ID != authorID2 {
-				t.Errorf("expected %d, received %d", authorID2, l[1].ID)
-			}
-		})
-
-		t.Run("ListAgentsByAuthorID", func(t *testing.T) {
-			l, err := r.ListAuthorsByAgentID(ctx, authorID1)
-			if err != nil {
-				t.Fatalf("failed to list agents by author id: %s", err)
-			}
-			if len(l) != 1 {
-				t.Errorf("expected length of 1, received %d", len(l))
-			}
-			if l[0].ID != agentID1 {
-				t.Errorf("expected %d, received %d", agentID1, l[0].ID)
-			}
-		})
-
-		t.Run("UpdateAuthor", func(t *testing.T) {
-			a, err := r.UpdateAuthor(ctx, sqlc.UpdateAuthorParams{
-				ID:      authorID1,
-				Name:    testName3,
-				Website: sql.NullString{},
-				AgentID: agentID2,
+			t.Run("CreateBook 2", func(t *testing.T) {
+				b, err := r.CreateBook(ctx, sqlc.CreateBookParams{
+					Title:       testBook2.Title,
+					Description: testBook2.Description,
+					Cover:       testBook2.Cover,
+				}, []int64{testAuthor2.ID})
+				if err != nil {
+					t.Fatalf("failed to create book: %s", err)
+				}
+				testBook2.ID = b.ID
 			})
-			if err != nil {
-				t.Fatal("failed to update agent")
-			}
-			if a.ID != authorID1 {
-				t.Errorf("expected %d, received %d", authorID1, a.ID)
-			}
-			if a.Name != testName3 {
-				t.Errorf("expected %q, received %q", testName3, a.Name)
-			}
-			if a.Website.Valid {
-				t.Errorf("expected false, received %v", a.Website.Valid)
-			}
-			if a.AgentID != agentID2 {
-				t.Errorf("expected %d, received %d", agentID2, a.AgentID)
-			}
 		})
 
-		t.Run("GetAuthor", func(t *testing.T) {
-			g, err := r.GetAuthor(ctx, authorID1)
-			if err != nil {
-				t.Fatalf("failed to get author: %s", err)
-			}
-			// should have the data updated in UpdateAuthor above
-			if g.ID != authorID1 {
-				t.Errorf("expected %d, received %d", authorID1, g.ID)
-			}
-			if g.Name != testName3 {
-				t.Errorf("expected %q, received %q", testName3, g.Name)
-			}
-			if g.Website.Valid {
-				t.Errorf("expected false, received %v", g.Website.Valid)
-			}
-			if g.AgentID != agentID2 {
-				t.Errorf("expected %d, received %d", agentID2, g.AgentID)
-			}
+		t.Run("List queries", func(t *testing.T) {
+			t.Run("ListAgents", func(t *testing.T) {
+				l, err := r.ListAgents(ctx)
+				if err != nil {
+					t.Fatalf("failed to list agents: %s", err)
+				}
+				exp := []sqlc.Agent{testAgent1, testAgent2}
+				if !reflect.DeepEqual(exp, l) {
+					t.Errorf("expected %v, received %v", exp, l)
+				}
+			})
+
+			t.Run("ListAuthors", func(t *testing.T) {
+				l, err := r.ListAuthors(ctx)
+				if err != nil {
+					t.Fatalf("failed to list authors: %s", err)
+				}
+				exp := []sqlc.Author{testAuthor1, testAuthor2}
+				if !reflect.DeepEqual(exp, l) {
+					t.Errorf("expected %v, received %v", exp, l)
+				}
+			})
+
+			t.Run("ListAgentsByAuthorID", func(t *testing.T) {
+				l, err := r.ListAuthorsByAgentID(ctx, testAgent1.ID)
+				if err != nil {
+					t.Fatalf("failed to list authors by agent id: %s", err)
+				}
+				exp := []sqlc.Author{testAuthor1}
+				if !reflect.DeepEqual(exp, l) {
+					t.Errorf("expected %v, received %v", exp, l)
+				}
+			})
+
+			t.Run("ListBooks", func(t *testing.T) {
+				l, err := r.ListBooks(ctx)
+				if err != nil {
+					t.Fatalf("failed to list books: %s", err)
+				}
+				exp := []sqlc.Book{testBook1, testBook2}
+				if !reflect.DeepEqual(exp, l) {
+					t.Errorf("expected %v, received %v", exp, l)
+				}
+			})
+
+			t.Run("ListAuthorsByBookIDs", func(t *testing.T) {
+				l, err := r.ListAuthorsByBookID(ctx, testBook1.ID)
+				if err != nil {
+					t.Fatalf("failed to get authors by book id: %s", err)
+				}
+				exp := []sqlc.Author{testAuthor1, testAuthor2}
+				if !reflect.DeepEqual(exp, l) {
+					t.Errorf("expected %v, received %v", exp, l)
+				}
+			})
+
+			t.Run("ListBooksByAuthorIDs", func(t *testing.T) {
+				l, err := r.ListBooksByAuthorID(ctx, testAuthor2.ID)
+				if err != nil {
+					t.Fatalf("failed to list books by author ids: %s", err)
+				}
+				exp := []sqlc.Book{testBook1, testBook2}
+				if !reflect.DeepEqual(exp, l) {
+					t.Errorf("expected %v, received %v", exp, l)
+				}
+			})
 		})
 
-		t.Run("CreateBook", func(t *testing.T) {
-			b1, err := r.CreateBook(ctx, sqlc.CreateBookParams{
-				Title:       testTitle1,
-				Description: testDescription1,
-				Cover:       testCover1,
-			}, []int64{authorID1})
-			if err != nil {
-				t.Fatalf("failed to create book: %s", err)
-			}
-			if b1.Title != testTitle1 {
-				t.Errorf("expected %q, received %q", testTitle1, b1.Title)
-			}
-			if b1.Description != testDescription1 {
-				t.Errorf("expected %q, received %q", testDescription1, b1.Description)
-			}
-			if b1.Cover != testCover1 {
-				t.Errorf("expected %q, received %q", testCover1, b1.Cover)
-			}
-			bookID1 = b1.ID
-			b2, err := r.CreateBook(ctx, sqlc.CreateBookParams{
-				Title:       testTitle2,
-				Description: testDescription2,
-				Cover:       testCover2,
-			}, []int64{authorID2})
-			if err != nil {
-				t.Fatalf("failed to create book: %s", err)
-			}
-			bookID2 = b2.ID
+		t.Run("Update queries", func(t *testing.T) {
+			t.Run("UpdateAgent", func(t *testing.T) {
+				a, err := r.UpdateAgent(ctx, sqlc.UpdateAgentParams{
+					ID:    testAgent2.ID,
+					Name:  testAgentUpdated.Name,
+					Email: testAgentUpdated.Email,
+				})
+				if err != nil {
+					t.Fatalf("failed to update agent: %s", err)
+				}
+				testAgentUpdated.ID = a.ID
+				if !reflect.DeepEqual(testAgentUpdated, a) {
+					t.Errorf("expected %v, received %v", testAgentUpdated, a)
+				}
+			})
+
+			t.Run("UpdateAuthor", func(t *testing.T) {
+				a, err := r.UpdateAuthor(ctx, sqlc.UpdateAuthorParams{
+					ID:      testAuthor2.ID,
+					Name:    testAuthorUpdated.Name,
+					Website: testAuthorUpdated.Website,
+					AgentID: testAgent1.ID,
+				})
+				if err != nil {
+					t.Fatal("failed to update agent")
+				}
+				testAuthorUpdated.ID = a.ID
+				testAuthorUpdated.AgentID = testAgent1.ID
+				if !reflect.DeepEqual(testAuthorUpdated, a) {
+					t.Errorf("expected %v, received %v", testAuthorUpdated, a)
+				}
+			})
+
+			t.Run("UpdateBook", func(t *testing.T) {
+				b, err := r.UpdateBook(ctx, sqlc.UpdateBookParams{
+					ID:          testBook1.ID,
+					Title:       testBookUpdated.Title,
+					Description: testBookUpdated.Description,
+					Cover:       testBookUpdated.Cover,
+				}, []int64{testAuthor1.ID})
+				if err != nil {
+					t.Fatalf("failed to update book: %s", err)
+				}
+				testBookUpdated.ID = b.ID
+				if !reflect.DeepEqual(&testBookUpdated, b) {
+					t.Errorf("expected %v, received %v", testBookUpdated, b)
+				}
+				l, err := r.ListAuthorsByBookID(ctx, testBookUpdated.ID)
+				if err != nil {
+					t.Fatalf("failed to list authors by book id: %s", err)
+				}
+				exp := []sqlc.Author{testAuthor1}
+				if !reflect.DeepEqual(exp, l) {
+					t.Errorf("expected %v, received %v", exp, l)
+				}
+			})
 		})
 
-		t.Run("ListBooks", func(t *testing.T) {
-			l, err := r.ListBooks(ctx)
-			if err != nil {
-				t.Fatalf("failed to list books: %s", err)
-			}
-			if len(l) != 2 {
-				t.Errorf("expected length of 2, received %d", len(l))
-			}
-			if l[0].ID != bookID1 {
-				t.Errorf("expected %d, received %d", authorID1, l[0].ID)
-			}
-			if l[0].Title != testTitle1 {
-				t.Errorf("expected %q, received %q", testTitle1, l[0].Title)
-			}
-			if l[0].Description != testDescription1 {
-				t.Errorf("expected %q, received %q", testDescription1, l[0].Description)
-			}
-			if l[0].Cover != testCover1 {
-				t.Errorf("expected %q, received %q", testCover1, l[0].Cover)
-			}
-			if l[1].ID != bookID2 {
-				t.Errorf("expected %d, received %d", bookID2, l[1].ID)
-			}
+		t.Run("Get queries", func(t *testing.T) {
+			t.Run("GetAgent", func(t *testing.T) {
+				a, err := r.GetAgent(ctx, testAgentUpdated.ID)
+				if err != nil {
+					t.Fatalf("failed to get agent: %s", err)
+				}
+				if !reflect.DeepEqual(testAgentUpdated, a) {
+					t.Errorf("expected %v, received %v", testAgentUpdated, a)
+				}
+			})
+
+			t.Run("GetAuthor", func(t *testing.T) {
+				a, err := r.GetAuthor(ctx, testAuthorUpdated.ID)
+				if err != nil {
+					t.Fatalf("failed to get author: %s", err)
+				}
+				if !reflect.DeepEqual(testAuthorUpdated, a) {
+					t.Errorf("expected %v, received %v", testAuthorUpdated, a)
+				}
+			})
+
+			t.Run("GetBook", func(t *testing.T) {
+				b, err := r.GetBook(ctx, testBookUpdated.ID)
+				if err != nil {
+					t.Fatalf("failed to get book: %s", err)
+				}
+				if !reflect.DeepEqual(testBookUpdated, b) {
+					t.Errorf("expected %v, received %v", testBookUpdated, b)
+				}
+			})
 		})
 
-		t.Run("ListAuthorsByBookIDs", func(t *testing.T) {
-			l, err := r.ListAuthorsByBookID(ctx, bookID1)
-			if err != nil {
-				t.Fatalf("failed to list authors by book ids: %s", err)
-			}
-			if len(l) != 1 {
-				t.Errorf("expected length of 1, received %d", len(l))
-			}
-			if l[0].ID != authorID1 {
-				t.Errorf("expected %d, received %d", authorID1, l[0].ID)
-			}
-		})
+		t.Run("Delete queries", func(t *testing.T) {
+			t.Run("DeleteAgent ForeignKey Constraint", func(t *testing.T) {
+				_, err := r.DeleteAgent(ctx, testAgent1.ID)
+				expError := `pq: update or delete on table "agents" violates foreign key constraint "authors_agent_id_fkey" on table "authors"`
+				if err.Error() != expError {
+					t.Fatalf("expected %s message, received %s", expError, err)
+				}
+			})
 
-		t.Run("ListBooksByAuthorIDs", func(t *testing.T) {
-			l, err := r.ListBooksByAuthorID(ctx, authorID1)
-			if err != nil {
-				t.Fatalf("failed to list books by author ids: %s", err)
-			}
-			if len(l) != 1 {
-				t.Errorf("expected length of 1, received %d", len(l))
-			}
-			if l[0].ID != bookID1 {
-				t.Errorf("expected %d, received %d", bookID1, l[0].ID)
-			}
-		})
+			t.Run("DeleteBook", func(t *testing.T) {
+				b, err := r.DeleteBook(ctx, testBook2.ID)
+				if err != nil {
+					t.Fatalf("failed to delete book: %s", err)
+				}
+				if !reflect.DeepEqual(testBook2, b) {
+					t.Errorf("expected %v, received %v", testBook2, b)
+				}
+				l1, err := r.ListAuthorsByBookID(ctx, testBook2.ID)
+				if err != nil {
+					t.Fatalf("failed to list authors by book id: %s", err)
+				}
+				if len(l1) != 0 {
+					t.Errorf("expected length of 0, received %d", len(l1))
+				}
+				l2, err := r.ListBooks(ctx)
+				if err != nil {
+					t.Fatalf("failed to list books: %s", err)
+				}
+				if len(l2) != 1 {
+					t.Errorf("expected length of 1, received %d", len(l2))
+				}
+			})
 
-		t.Run("UpdateBook", func(t *testing.T) {
-			b, err := r.UpdateBook(ctx, sqlc.UpdateBookParams{
-				ID:          bookID2,
-				Title:       testTitle3,
-				Description: testDescription3,
-				Cover:       testCover3,
-			}, []int64{authorID1, authorID2})
-			if err != nil {
-				t.Fatalf("failed to update book: %s", err)
-			}
-			if b.Title != testTitle3 {
-				t.Errorf("expected %q, received %q", testTitle3, b.Title)
-			}
-			if b.Description != testDescription3 {
-				t.Errorf("expected %q, received %q", testDescription3, b.Description)
-			}
-			if b.Cover != testCover3 {
-				t.Errorf("expected %q, received %q", testCover3, b.Cover)
-			}
+			t.Run("DeleteAuthor", func(t *testing.T) {
+				a, err := r.DeleteAuthor(ctx, testAuthor1.ID)
+				if err != nil {
+					t.Fatalf("failed to delete author: %s", err)
+				}
+				if !reflect.DeepEqual(testAuthor1, a) {
+					t.Errorf("expected %v, received %v", testAuthor1, a)
+				}
+				l, err := r.ListAuthors(ctx)
+				if err != nil {
+					t.Fatalf("failed to list books: %s", err)
+				}
+				if len(l) != 1 {
+					t.Errorf("expected length of 1, received %d", len(l))
+				}
+			})
 
-			l, err := r.ListAuthorsByBookID(ctx, bookID2)
-			if err != nil {
-				t.Fatalf("failed to list authors by book id: %s", err)
-			}
-			if len(l) != 2 {
-				t.Errorf("expected length of 2, received %d", len(l))
-			}
-		})
-
-		t.Run("GetBook", func(t *testing.T) {
-			b, err := r.GetBook(ctx, bookID2)
-			if err != nil {
-				t.Fatalf("failed to get book: %s", err)
-			}
-			if b.Title != testTitle3 {
-				t.Errorf("expected %q, received %q", testTitle3, b.Title)
-			}
-			if b.Description != testDescription3 {
-				t.Errorf("expected %q, received %q", testDescription3, b.Description)
-			}
-			if b.Cover != testCover3 {
-				t.Errorf("expected %q, received %q", testCover3, b.Cover)
-			}
-		})
-
-		t.Run("DeleteBook", func(t *testing.T) {
-			b, err := r.DeleteBook(ctx, bookID1)
-			if err != nil {
-				t.Fatalf("failed to delete book: %s", err)
-			}
-			if b.Title != testTitle1 {
-				t.Errorf("expected %q, received %q", testTitle1, b.Title)
-			}
-			if b.Description != testDescription1 {
-				t.Errorf("expected %q, received %q", testDescription1, b.Description)
-			}
-			if b.Cover != testCover1 {
-				t.Errorf("expected %q, received %q", testCover1, b.Cover)
-			}
-
-			l, err := r.ListAuthorsByBookID(ctx, bookID1)
-			if err != nil {
-				t.Fatalf("failed to list authors by book id: %s", err)
-			}
-			if len(l) != 0 {
-				t.Errorf("expected length of 0, received %d", len(l))
-			}
-		})
-
-		t.Run("DeleteAuthor", func(t *testing.T) {
-			d, err := r.DeleteAuthor(ctx, authorID1)
-			if err != nil {
-				t.Fatalf("failed to delete author: %s", err)
-			}
-			if d.Name != testName3 {
-				t.Errorf("expected %q, received %q", testName3, d.Name)
-			}
-			if d.Website.Valid {
-				t.Errorf("expected false, received %v", d.Website.Valid)
-			}
-			if d.AgentID != agentID2 {
-				t.Errorf("expected %d, received %d", agentID2, d.AgentID)
-			}
-		})
-
-		t.Run("DeleteAgent", func(t *testing.T) {
-			// author1 must be deleted first
-			d, err := r.DeleteAgent(ctx, agentID1)
-			if err != nil {
-				t.Fatalf("failed to delete agent: %s", err)
-			}
-			if d.ID != agentID1 {
-				t.Errorf("expected %d, received %d", agentID1, d.ID)
-			}
-			if d.Name != testName1 {
-				t.Errorf("expected %q, received %q", testName1, d.Name)
-			}
-			if d.Email != testEmail1 {
-				t.Errorf("expected %q, received %q", testEmail1, d.Email)
-			}
-			l, err := r.ListAgents(ctx)
-			if err != nil {
-				t.Fatalf("failed to list agents after delete: %s", err)
-			}
-			if len(l) != 1 {
-				t.Errorf("expected length of 1, received %d", len(l))
-			}
+			t.Run("DeleteAgent", func(t *testing.T) {
+				a, err := r.DeleteAgent(ctx, testAgentUpdated.ID)
+				if err != nil {
+					t.Fatalf("failed to delete agent: %s", err)
+				}
+				if !reflect.DeepEqual(testAgentUpdated, a) {
+					t.Errorf("expected %v, received %v", testAgentUpdated, a)
+				}
+				l, err := r.ListAgents(ctx)
+				if err != nil {
+					t.Fatalf("failed to list agents after delete: %s", err)
+				}
+				if len(l) != 1 {
+					t.Errorf("expected length of 1, received %d", len(l))
+				}
+			})
 		})
 	})
 }
